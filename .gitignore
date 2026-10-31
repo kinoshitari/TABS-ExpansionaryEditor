@@ -1,0 +1,21 @@
+/bin/
+/obj/
+/build/
+/verify/
+/dist/
+/.vs/
+*.user
+*.suo
+*.log
+/*-inspect.txt
+/TASK.md
+/*执行方案.md
+/改进方案.md
+
+# Personal settings and presets do not belong in the repository.
+/数值设置.json*
+/编辑历史.json*
+/兵种原始数据.json*
+/平衡方案/
+.env
+.env.*

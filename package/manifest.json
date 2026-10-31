@@ -1,0 +1,9 @@
+{
+  "name": "ExpansionaryEditor",
+  "version_number": "1.4.0",
+  "website_url": "",
+  "description": "F6 兵种数值编辑器。支持原版、隐藏、臭臭、扩张、圣诞节与动物王国；极简界面、批量编辑、历史及范围预设。",
+  "dependencies": [
+    "BepInEx-BepInExPack_TABS-5.4.16"
+  ]
+}
