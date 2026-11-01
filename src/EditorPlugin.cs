@@ -13,7 +13,7 @@ using UnityEngine;
 
 namespace ExpansionaryEditor
 {
-    [BepInPlugin("local.tabs.expansionaryeditor", "TABS 兵种数值编辑器", "1.6.0")]
+    [BepInPlugin("local.tabs.expansionaryeditor", "TABS 兵种数值编辑器", "1.6.1")]
     [BepInDependency("org.bepinex.plugins.SLMAcore", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("GeeztJeez.Expansionary", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("chouchou", BepInDependency.DependencyFlags.SoftDependency)]
@@ -49,7 +49,7 @@ namespace ExpansionaryEditor
             Directory.CreateDirectory(DataDirectory);
             LoadSettings();
             Harmony=new Harmony("local.tabs.expansionaryeditor");
-            MenuOrder=new NativeMenuOrder(this,message=>{error=message;Logger.LogError(message);});
+            MenuOrder=new NativeMenuOrder(this,message=>{error=message;Logger.LogError(message);},message=>Logger.LogInfo(message));
             MenuOrder.Install(Harmony);
             PatchDerivedTranslations();
             InitializeSources();

@@ -27,7 +27,7 @@ namespace ExpansionaryEditor
         static readonly FieldInfo UnitLayout=AccessTools.Field(typeof(PlacementUI),"unitLayoutGroup");
         static readonly FieldInfo ExpandedUI=AccessTools.Field(typeof(PlacementUI),"expandedFactionUI");
         static readonly FieldInfo ExpandedOpen=AccessTools.Field(typeof(ExpandedFactionUI),"open");
-        static readonly FieldInfo ExpandedPlacement=AccessTools.Field(typeof(ExpandedFactionUI),"placementUI");
+        static readonly FieldInfo UnitPlacement=AccessTools.Field(typeof(UnitButton),"m_placementUI");
         static readonly FieldInfo GameState=AccessTools.Field(typeof(PlacementUI),"m_gameStateManager");
         static readonly FieldInfo FarLeft=AccessTools.Field(typeof(UILayoutGroup),"m_farLeftIndex");
         static readonly FieldInfo UnitIds=AccessTools.Field(typeof(PlacementUI),"m_unitIDs");
@@ -36,13 +36,14 @@ namespace ExpansionaryEditor
         static readonly MethodInfo Redraw=AccessTools.Method(typeof(PlacementUI),"RedrawFactionUnits");
         readonly string path;
         readonly Action<string> report;
+        readonly Action<string> trace;
         MenuOrderData data=new MenuOrderData();
         bool readError;
         internal NativeUnitDrag Drag;
 
-        internal NativeMenuOrder(EditorPlugin plugin,Action<string> report)
+        internal NativeMenuOrder(EditorPlugin plugin,Action<string> report,Action<string> trace)
         {
-            this.report=report;path=Path.Combine(plugin.DataDirectory,"菜单排序.json");
+            this.report=report;this.trace=trace;path=Path.Combine(plugin.DataDirectory,"菜单排序.json");
             if(File.Exists(path))
             {
                 try
@@ -62,11 +63,8 @@ namespace ExpansionaryEditor
         {
             harmony.Patch(AccessTools.Method(typeof(Faction),"GetRearrangedUnits"),
                 postfix:new HarmonyMethod(typeof(NativeMenuOrder),nameof(OrderedUnits)));
-            harmony.Patch(AccessTools.Method(typeof(UnitButton),"SetupUnit",new[]{typeof(UnitButton.UnitButtonData)}),
-                postfix:new HarmonyMethod(typeof(NativeMenuOrder),nameof(SetupHandle)));
-            foreach(string name in new[]{"OnOpen","OnClose","ForceOpenState"})
-                harmony.Patch(AccessTools.Method(typeof(ExpandedFactionUI),name),
-                    postfix:new HarmonyMethod(typeof(NativeMenuOrder),nameof(RefreshHandles)));
+            harmony.Patch(AccessTools.Method(typeof(UnitButton),"OnPointerClick",new[]{typeof(PointerEventData)}),
+                prefix:new HarmonyMethod(typeof(NativeMenuOrder),nameof(AllowUnitClick)));
         }
 
         static NativeMenuOrder Current=>EditorPlugin.Instance?.MenuOrder;
@@ -74,9 +72,11 @@ namespace ExpansionaryEditor
         internal static Faction FactionOf(PlacementUI owner)=>owner?SelectedFaction.GetValue(owner) as Faction:null;
         internal static UILayoutGroup LayoutOf(PlacementUI owner)=>owner?UnitLayout.GetValue(owner) as UILayoutGroup:null;
 
+        internal static PlacementUI OwnerOf(UnitButton button)=>button?UnitPlacement.GetValue(button) as PlacementUI:null;
+
         bool MenuOpen(PlacementUI owner)
         {
-            if(readError||!owner||!owner.isActiveAndEnabled)return false;
+            if(readError||!owner||!owner.gameObject.activeInHierarchy)return false;
             var expanded=ExpandedUI.GetValue(owner) as ExpandedFactionUI;
             return expanded&&expanded.gameObject.activeInHierarchy&&(bool)ExpandedOpen.GetValue(expanded);
         }
@@ -98,22 +98,10 @@ namespace ExpansionaryEditor
             __result=__result.OrderBy(u=>u&&ranks.TryGetValue(Id(u.Entity.GUID),out var rank)?rank:int.MaxValue).ToArray();
         }
 
-        static void SetupHandle(UnitButton __instance,UnitButton.UnitButtonData __0)
+        static bool AllowUnitClick(UnitButton __instance,PointerEventData __0)
         {
-            var order=Current;var owner=__0.placementUI as PlacementUI;
-            if(order==null||!owner||__instance.GetComponentInParent<UILayoutGroup>()!=LayoutOf(owner))return;
-            var handle=__instance.GetComponent<UnitOrderHandle>()??__instance.gameObject.AddComponent<UnitOrderHandle>();
-            handle.Button=__instance;handle.Owner=owner;handle.enabled=order.MenuOpen(owner);
-        }
-
-        static void RefreshHandles(ExpandedFactionUI __instance)
-        {
-            var order=Current;if(order==null)return;
-            var owner=ExpandedPlacement.GetValue(__instance) as PlacementUI;
-            var layout=LayoutOf(owner);if(!layout)return;
-            bool enabled=order.MenuOpen(owner);
-            foreach(var handle in layout.GetComponentsInChildren<UnitOrderHandle>(true))handle.enabled=enabled;
-            if(!enabled&&order.Drag)order.Drag.Cancel();
+            var order=Current;
+            return order==null||!order.Drag||!order.Drag.BlocksClick(__instance,__0);
         }
 
         internal bool MoveUnit(Faction faction,DatabaseID source,DatabaseID target,bool after)
@@ -125,7 +113,8 @@ namespace ExpansionaryEditor
             if(moved.SequenceEqual(live))return false;
             string key=Id(faction.Entity.GUID);
             if(data.FactionUnits.TryGetValue(key,out var previous))moved.AddRange(previous.Where(id=>!moved.Contains(id)));
-            var next=EditData.Clone(data);next.FactionUnits[key]=moved;Save(next);return true;
+            var next=EditData.Clone(data);next.FactionUnits[key]=moved;Save(next);
+            trace("ORDER SAVED "+key+": "+from+(after?" after ":" before ")+to);return true;
         }
 
         void Save(MenuOrderData next)
@@ -165,66 +154,89 @@ namespace ExpansionaryEditor
         }
 
         internal void Report(string message)=>report(message);
+        internal void Trace(string message)=>trace(message);
         internal void Dispose(){if(Drag){Drag.Cancel();UnityEngine.Object.Destroy(Drag);}}
     }
 
-    public sealed class UnitOrderHandle:MonoBehaviour,IBeginDragHandler,IDragHandler,IEndDragHandler
+    // One input owner for the whole unit row. No per-button enabled state or popup
+    // reverse reference is required, and paging can destroy the original button safely.
+    public sealed class NativeUnitDrag:MonoBehaviour
     {
-        internal UnitButton Button;
-        internal PlacementUI Owner;
-        public void OnBeginDrag(PointerEventData e)
-        {
-            var order=EditorPlugin.Instance?.MenuOrder;
-            if(order!=null&&order.Drag.Begin(Button,Owner,e))
-            {
-                e.eligibleForClick=false;
-                // The source may scroll off-screen and be destroyed by the native layout.
-                e.pointerDrag=order.Drag.gameObject;
-            }
-        }
-        public void OnDrag(PointerEventData e){EditorPlugin.Instance?.MenuOrder?.Drag.OnDrag(e);}
-        public void OnEndDrag(PointerEventData e){EditorPlugin.Instance?.MenuOrder?.Drag.OnEndDrag(e);}
-    }
-
-    public sealed class NativeUnitDrag:MonoBehaviour,IBeginDragHandler,IDragHandler,IEndDragHandler
-    {
+        enum Phase { Idle,Pressed,Dragging }
         internal NativeMenuOrder Order;
-        PlacementUI owner;
+        Phase phase;
+        PlacementUI owner,suppressedOwner;
         Faction faction;
         UILayoutGroup layout;
+        UnitButton pressedButton;
         DatabaseID source,target;
-        bool dragging,hasTarget,after,ownsFade;
+        Vector2 pressPosition;
+        float dragThreshold;
+        int suppressClickThrough=-1;
+        bool hasTarget,after,ownsFade;
         Camera eventCamera;
         CanvasGroup fade;
         float oldAlpha,nextScroll;
         GameObject visuals;
         RectTransform ghost,marker;
         readonly Vector3[] corners=new Vector3[4];
+        readonly List<RaycastResult> hits=new List<RaycastResult>();
 
-        internal bool Begin(UnitButton button,PlacementUI placement,PointerEventData e)
+        void TryPress()
         {
-            if(e.button!=PointerEventData.InputButton.Left||!Order.CanOrder(placement)||!button)return false;
+            var events=EventSystem.current;
+            if(!events||!EditorPlugin.Instance||EditorPlugin.Instance.Visible)return;
+            var pointer=new PointerEventData(events){position=Input.mousePosition,button=PointerEventData.InputButton.Left};
+            hits.Clear();events.RaycastAll(pointer,hits);
+            if(hits.Count==0)return;
+            // Only the top hit counts: never drag a unit behind another open UI panel.
+            var hit=hits[0];var button=hit.gameObject?hit.gameObject.GetComponentInParent<UnitButton>():null;
+            var placement=NativeMenuOrder.OwnerOf(button);
+            if(!button||!Order.CanOrder(placement))return;
             var current=NativeMenuOrder.FactionOf(placement);
-            if(!current||current.GetRearrangedUnits().Count(u=>u)<2)return false;
-            Cancel();owner=placement;faction=current;layout=NativeMenuOrder.LayoutOf(owner);source=button.UnitID;
-            eventCamera=e.pressEventCamera;dragging=true;nextScroll=Time.unscaledTime+.35f;
+            if(!current||current.GetRearrangedUnits().Count(u=>u)<2)return;
+            owner=placement;faction=current;layout=NativeMenuOrder.LayoutOf(owner);
+            if(!layout){owner=null;faction=null;return;}
+            pressedButton=button;source=button.UnitID;pressPosition=pointer.position;
+            dragThreshold=Mathf.Max(4,events.pixelDragThreshold);
+            eventCamera=hit.module?hit.module.eventCamera:null;phase=Phase.Pressed;
+        }
+
+        bool Begin()
+        {
+            if(!pressedButton)return false;
+            phase=Phase.Dragging;SuppressRelease();nextScroll=Time.unscaledTime+.35f;
             try
             {
-                fade=button.GetComponent<CanvasGroup>();ownsFade=!fade;
-                if(!fade)fade=button.gameObject.AddComponent<CanvasGroup>();oldAlpha=fade.alpha;fade.alpha=.35f;
+                fade=pressedButton.GetComponent<CanvasGroup>();ownsFade=!fade;
+                if(!fade)fade=pressedButton.gameObject.AddComponent<CanvasGroup>();oldAlpha=fade.alpha;fade.alpha=.35f;
                 visuals=new GameObject("Unit order drag",typeof(RectTransform),typeof(Canvas));
                 var canvas=visuals.GetComponent<Canvas>();canvas.renderMode=RenderMode.ScreenSpaceOverlay;canvas.sortingOrder=32760;
                 ghost=CreateImage("Unit",visuals.transform,new Color(1,1,1,.85f));
-                var icon=button.GetComponentsInChildren<Image>().FirstOrDefault(i=>i.gameObject.activeInHierarchy&&i.sprite&&i!=button.GetComponent<Image>());
+                var icon=pressedButton.GetComponentsInChildren<Image>().FirstOrDefault(i=>i.gameObject.activeInHierarchy&&i.sprite&&i!=pressedButton.GetComponent<Image>());
                 if(icon){var image=ghost.GetComponent<Image>();image.sprite=icon.sprite;image.preserveAspect=true;}
                 else ghost.GetComponent<Image>().color=new Color(0,.42f,.96f,.7f);
-                var rect=ScreenRect(button.transform as RectTransform);float size=Mathf.Clamp(Mathf.Min(rect.width,rect.height),48,128);
+                var rect=ScreenRect(pressedButton.transform as RectTransform);float size=Mathf.Clamp(Mathf.Min(rect.width,rect.height),48,128);
                 ghost.sizeDelta=new Vector2(size,size);
                 marker=CreateImage("Insert",visuals.transform,new Color(0,.48f,1));
-                Track(e.position);return true;
+                Order.Trace("ORDER DRAG "+source.m_modID+":"+source.m_ID);
+                return true;
             }
             catch(Exception ex){Cancel();Order.Report("无法开始兵种排序："+ex.Message);return false;}
         }
+
+        internal bool BlocksClick(UnitButton button,PointerEventData e)
+        {
+            if(e.button!=PointerEventData.InputButton.Left)return false;
+            var placement=NativeMenuOrder.OwnerOf(button);
+            if(phase==Phase.Dragging&&placement==owner)return true;
+            // EventSystem.Update may run before this controller on the release frame.
+            if(phase==Phase.Pressed&&placement==owner&&PastThreshold(e.position))return true;
+            return placement&&placement==suppressedOwner&&Time.frameCount<=suppressClickThrough;
+        }
+
+        void SuppressRelease(){suppressedOwner=owner;suppressClickThrough=Time.frameCount+1;}
+        bool PastThreshold(Vector2 position)=>(position-pressPosition).sqrMagnitude>=dragThreshold*dragThreshold;
 
         static RectTransform CreateImage(string name,Transform parent,Color color)
         {
@@ -243,10 +255,12 @@ namespace ExpansionaryEditor
 
         bool Track(Vector2 position)
         {
-            if(!dragging||!ghost||!marker)return false;
+            if(phase!=Phase.Dragging||!ghost||!marker)return false;
             ghost.position=position;hasTarget=false;Rect bounds=new Rect();bool haveBounds=false;
             float distance=float.MaxValue;Rect targetRect=new Rect();
-            foreach(var rect in layout.GetAllButtonRectTransforms())
+            var rects=layout.GetAllButtonRectTransforms();
+            if(rects==null){marker.gameObject.SetActive(false);return false;}
+            foreach(var rect in rects)
             {
                 if(!rect||!rect.gameObject.activeInHierarchy)continue;
                 var button=rect.GetComponent<UnitButton>();if(!button)continue;
@@ -275,14 +289,10 @@ namespace ExpansionaryEditor
             return hasTarget;
         }
 
-        public void OnBeginDrag(PointerEventData e){}
-        public void OnDrag(PointerEventData e)
-        {if(dragging){e.eligibleForClick=false;if(!Valid())Cancel();else Track(e.position);}}
-        public void OnEndDrag(PointerEventData e)
+        void Finish(Vector2 position)
         {
-            if(!dragging)return;
             bool moved=false;
-            try{if(Valid()&&Track(e.position))moved=Order.MoveUnit(faction,source,target,after);}
+            try{if(Valid()&&Track(position))moved=Order.MoveUnit(faction,source,target,after);}
             catch(Exception ex){Order.Report("兵种排序未保存："+ex.Message);}
             var placement=owner;Cancel();
             if(moved)
@@ -293,19 +303,35 @@ namespace ExpansionaryEditor
         bool Valid()=>Order.CanOrder(owner)&&layout&&NativeMenuOrder.FactionOf(owner)==faction;
         void Update()
         {
-            if(!dragging)return;
+            if(Input.GetMouseButtonDown(0))
+            {
+                Cancel();suppressedOwner=null;suppressClickThrough=-1;TryPress();
+            }
+            if(phase==Phase.Idle)return;
             if(!Valid()||Input.GetKeyDown(KeyCode.Escape)){Cancel();return;}
-            Track(Input.mousePosition);
+            Vector2 position=Input.mousePosition;
+            if(phase==Phase.Pressed&&PastThreshold(position))
+            {
+                if(!Begin()){Cancel();return;}
+            }
+            if(Input.GetMouseButtonUp(0))
+            {
+                if(phase==Phase.Dragging)Finish(position);else Cancel();
+                return;
+            }
+            if(!Input.GetMouseButton(0)){Cancel();return;}
+            if(phase==Phase.Dragging)Track(position);
         }
         void OnApplicationFocus(bool focused){if(!focused)Cancel();}
         void OnDisable(){Cancel();}
         void OnDestroy(){Cancel();}
         internal void Cancel()
         {
-            dragging=false;hasTarget=false;
+            if(phase==Phase.Dragging)SuppressRelease();
+            phase=Phase.Idle;hasTarget=false;
             if(fade){fade.alpha=oldAlpha;if(ownsFade)Destroy(fade);}
             if(visuals)Destroy(visuals);
-            visuals=null;ghost=marker=null;fade=null;owner=null;faction=null;layout=null;
+            visuals=null;ghost=marker=null;fade=null;pressedButton=null;owner=null;faction=null;layout=null;
         }
     }
 }
