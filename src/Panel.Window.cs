@@ -25,6 +25,7 @@ namespace ExpansionaryEditor
             windowHeight=Config.Bind("界面","窗口高度",800f);
             windowZoom=Config.Bind("界面","界面缩放",1f,"实际像素缩放；1 表示 100%。屏幕放不下时临时缩小，不改已记住的比例。");
             windowScaleVersion=Config.Bind("界面","缩放规则版本",0,"内部迁移标记，请勿手动修改。");
+            windowTheme=Config.Bind("界面","风格",EditorTheme.Light);
             migrateWindowScale=windowScaleVersion.Value<1;
             uiZoom=Mathf.Clamp(windowZoom.Value,.65f,migrateWindowScale?1.4f:2f);
         }
@@ -79,8 +80,8 @@ namespace ExpansionaryEditor
         {
             int id=GUIUtility.GetControlID("ExpansionaryEditor.Window".GetHashCode(),FocusType.Passive);
             var ev=Event.current;var grip=new Rect(editorRect.xMax-28,editorRect.yMax-28,28,28);
-            var header=new Rect(editorRect.x,editorRect.y,editorRect.width-680,80);
-            if(!string.IsNullOrEmpty(confirm))return;
+            var header=new Rect(editorRect.x,editorRect.y,editorRect.width-768,80);
+            if(showSettings||!string.IsNullOrEmpty(confirm))return;
             if(sizingByClick)
             {
                 editorRect.width=ev.mousePosition.x-editorRect.x+12;editorRect.height=ev.mousePosition.y-editorRect.y+12;

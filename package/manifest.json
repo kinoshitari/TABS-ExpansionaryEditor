@@ -1,9 +1,14 @@
 {
   "name": "ExpansionaryEditor",
-  "version_number": "1.4.0",
-  "website_url": "",
-  "description": "F6 兵种数值编辑器。支持原版、隐藏、臭臭、扩张、圣诞节与动物王国；极简界面、批量编辑、历史及范围预设。",
+  "version_number": "1.6.0",
+  "website_url": "https://github.com/kinoshitari/TABS-ExpansionaryEditor",
+  "description": "F6 六来源兵种编辑器。分级增减、浅色/经典界面、兵种拖动排序、批量及预设；扩展来源为运行时软依赖，支持原版单独使用。",
   "dependencies": [
-    "BepInEx-BepInExPack_TABS-5.4.16"
+    "BepInEx-BepInExPack_TABS-5.4.16",
+    "Grad-HiddenUnits-2.0.9",
+    "Chou_Chou_Team-ChouChou_s_Unit-0.5.0",
+    "Geezt-Expansionary-1.2.9",
+    "Grad-Holiday-2.2.1",
+    "Grad-AnimalKingdom-1.0.4"
   ]
 }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HarmonyLib;
+using BepInEx.Bootstrap;
 using Landfall.TABS;
 using UnityEngine;
 
@@ -31,6 +32,7 @@ namespace ExpansionaryEditor
         Type expansionLoader;
 
         static Type LoadedType(string name)=>AppDomain.CurrentDomain.GetAssemblies().Select(a=>a.GetType(name)).FirstOrDefault(t=>t!=null);
+        static Type ActiveSourceType(string name,string pluginGuid)=>Chainloader.PluginInfos.ContainsKey(pluginGuid)?LoadedType(name):null;
         public static string SourceName(string id)
         {switch(id){case "Vanilla":return "原版";case "HiddenUnits":return "隐藏";case "ChouChou":return "臭臭";case "Expansionary":return "扩张";case "Holiday":return "圣诞节";case "AnimalKingdom":return "动物王国";default:return id;}}
         public static string ComponentId(Type type)=>CombatAssemblies.Contains(type.Assembly)&&type.Namespace!="AddonExpansionary"?
@@ -42,21 +44,24 @@ namespace ExpansionaryEditor
         }
         void InitializeSources()
         {
-            RegisterSource("Expansionary.UManager","Expansionary.Loader",new SourceSpec("Expansionary","Expansionary","扩张模组"),false);
-            expansionLoader=LoadedType("Expansionary.Loader");
-            RegisterSource("ChouChousUnit.UManager","ChouChousUnit.Loader",new SourceSpec("ChouChou","ChouChou/Part1","臭臭模组 · 第一部分"),true);
-            RegisterSource("DARK.CManager","DARK.Loader",new SourceSpec("ChouChou","ChouChou/Part2","臭臭模组 · 第二部分"),true);
-            RegisterSource("rwdseerfd.UManager","rwdseerfd.Loader",new SourceSpec("ChouChou","ChouChou/Part3","臭臭模组 · 第三部分"),true);
-            RegisterSource("ChouChouMap.UManager","ChouChouMap.Loader",new SourceSpec("ChouChou","ChouChou/Map","臭臭模组 · 地图附属"),true);
-            var hidden=LoadedType("HiddenUnits.HUMain");if(hidden!=null)CombatAssemblies.Add(hidden.Assembly);
-            var holiday=LoadedType("Holiday.HolidayMain");if(holiday!=null)CombatAssemblies.Add(holiday.Assembly);
-            var animal=LoadedType("AnimalKingdom.AKMain");if(animal!=null)CombatAssemblies.Add(animal.Assembly);
-            var animalLauncher=LoadedType("AnimalKingdom.AKLauncher");if(animalLauncher!=null)TrackIterator(animalLauncher,"LaunchMod","动物王国");
-            var tg=LoadedType("TGCore.TGMain");if(tg!=null)TrackIterator(tg,"InitializeMods","模组目录");
+            RegisterSource("Expansionary.UManager","Expansionary.Loader",new SourceSpec("Expansionary","Expansionary","扩张模组"),false,"GeeztJeez.Expansionary");
+            expansionLoader=ActiveSourceType("Expansionary.Loader","GeeztJeez.Expansionary");
+            RegisterSource("ChouChousUnit.UManager","ChouChousUnit.Loader",new SourceSpec("ChouChou","ChouChou/Part1","臭臭模组 · 第一部分"),true,"chouchou");
+            RegisterSource("DARK.CManager","DARK.Loader",new SourceSpec("ChouChou","ChouChou/Part2","臭臭模组 · 第二部分"),true,"dark");
+            RegisterSource("rwdseerfd.UManager","rwdseerfd.Loader",new SourceSpec("ChouChou","ChouChou/Part3","臭臭模组 · 第三部分"),true,"rwdseerfd");
+            RegisterSource("ChouChouMap.UManager","ChouChouMap.Loader",new SourceSpec("ChouChou","ChouChou/Map","臭臭模组 · 地图附属"),true,"ChouChouMap");
+            var hidden=ActiveSourceType("HiddenUnits.HUMain","teamgrad.hiddenunits");if(hidden!=null)CombatAssemblies.Add(hidden.Assembly);
+            var holiday=ActiveSourceType("Holiday.HolidayMain","teamgrad.holiday");if(holiday!=null)CombatAssemblies.Add(holiday.Assembly);
+            var animal=ActiveSourceType("AnimalKingdom.AKMain","teamgrad.animalkingdom");if(animal!=null)CombatAssemblies.Add(animal.Assembly);
+            var animalLauncher=ActiveSourceType("AnimalKingdom.AKLauncher","teamgrad.animalkingdom");if(animalLauncher!=null)TrackIterator(animalLauncher,"LaunchMod","动物王国");
+            if(hidden!=null||holiday!=null)
+            {
+                var tg=ActiveSourceType("TGCore.TGMain","teamgrad.core");if(tg!=null)TrackIterator(tg,"InitializeMods","模组目录");
+            }
         }
-        void RegisterSource(string managerName,string loaderName,SourceSpec source,bool trackLoader)
+        void RegisterSource(string managerName,string loaderName,SourceSpec source,bool trackLoader,string pluginGuid)
         {
-            var manager=LoadedType(managerName);if(manager==null)return;
+            var manager=ActiveSourceType(managerName,pluginGuid);if(manager==null)return;
             CombatAssemblies.Add(manager.Assembly);
             foreach(var method in manager.GetMethods(BindingFlags.Static|BindingFlags.Public|BindingFlags.NonPublic).Where(m=>
                 System.Text.RegularExpressions.Regex.IsMatch(m.Name,@"^Init\d*$")||new[]{"MadeUnits","Devil","CPline"}.Contains(m.Name)))
@@ -65,7 +70,7 @@ namespace ExpansionaryEditor
                 bool takesDatabase=method.GetParameters().FirstOrDefault()?.ParameterType==typeof(DM.LandfallContentDatabase);
                 Harmony.Patch(method,prefix:new HarmonyMethod(typeof(EditorPlugin),takesDatabase?nameof(BeforeSourceInitWithDatabase):nameof(BeforeSourceInit)),postfix:new HarmonyMethod(typeof(EditorPlugin),nameof(AfterSourceInit)));
             }
-            if(trackLoader){var loader=LoadedType(loaderName);if(loader!=null)TrackIterator(loader,"call",source.Label);}
+            if(trackLoader){var loader=ActiveSourceType(loaderName,pluginGuid);if(loader!=null)TrackIterator(loader,"call",source.Label);}
         }
         void TrackIterator(Type owner,string name,string label)
         {
@@ -108,7 +113,7 @@ namespace ExpansionaryEditor
         }
         void ReadHiddenUnitIds()
         {
-            var type=LoadedType("HiddenUnits.HUMain");if(type==null)return;
+            var type=ActiveSourceType("HiddenUnits.HUMain","teamgrad.hiddenunits");if(type==null)return;
             CombatAssemblies.Add(type.Assembly);
             var bundle=AccessTools.Field(type,"hiddenUnits").GetValue(null) as AssetBundle;
             if(!bundle)throw new InvalidOperationException("隐藏模组的资源未加载完成");
@@ -116,9 +121,9 @@ namespace ExpansionaryEditor
             foreach(var bp in DatabaseBlueprints(catalogDatabase).Where(b=>b&&ids.Contains(b.Entity.GUID)&&!vanillaIds.Contains(b.Entity.GUID)))
                 unitSources[bp.GetInstanceID()]=HiddenSource;
         }
-        void ReadBundleUnitIds(string typeName,string fieldName,SourceSpec source)
+        void ReadBundleUnitIds(string typeName,string fieldName,SourceSpec source,string pluginGuid)
         {
-            var type=LoadedType(typeName);if(type==null)return;
+            var type=ActiveSourceType(typeName,pluginGuid);if(type==null)return;
             var bundle=AccessTools.Field(type,fieldName).GetValue(null) as AssetBundle;
             if(!bundle)throw new InvalidOperationException(source.Label+"资源未就绪");
             var ids=new HashSet<DatabaseID>(bundle.LoadAllAssets<UnitBlueprint>().Where(b=>b).Select(b=>b.Entity.GUID));
@@ -152,8 +157,8 @@ namespace ExpansionaryEditor
             try
             {
                 catalogDatabase=CurrentDatabase();ReadOfficialUnitIds();ReadHiddenUnitIds();
-                ReadBundleUnitIds("Holiday.HolidayMain","holiday",HolidaySource);
-                ReadBundleUnitIds("AnimalKingdom.AKMain","kermate",AnimalSource);
+                ReadBundleUnitIds("Holiday.HolidayMain","holiday",HolidaySource,"teamgrad.holiday");
+                ReadBundleUnitIds("AnimalKingdom.AKMain","kermate",AnimalSource,"teamgrad.animalkingdom");
                 var factions=Resources.FindObjectsOfTypeAll<Faction>();
                 foreach(var bp in DatabaseBlueprints(catalogDatabase).Where(b=>b))
                 {

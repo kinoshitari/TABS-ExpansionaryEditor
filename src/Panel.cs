@@ -48,6 +48,7 @@ namespace ExpansionaryEditor
             if(Input.GetKeyDown(KeyCode.Escape)&&!Composing)
             {
                 if(sizingByClick){sizingByClick=false;editorRect=dragRect;SaveWindow();}
+                else if(showSettings)showSettings=false;
                 else if(!string.IsNullOrEmpty(confirm))confirm="";
                 else if(!string.IsNullOrEmpty(focusedInput)){clearInputFocus=true;focusedInput="";}
                 else Toggle();
@@ -67,7 +68,7 @@ namespace ExpansionaryEditor
             }
             else
             {
-                confirm="";Input.imeCompositionMode=previousIme;focusedInput="";Time.timeScale=oldTimeScale;Cursor.visible=oldCursorVisible;Cursor.lockState=oldCursorLock;
+                confirm="";showSettings=false;Input.imeCompositionMode=previousIme;focusedInput="";Time.timeScale=oldTimeScale;Cursor.visible=oldCursorVisible;Cursor.lockState=oldCursorLock;
                 StartCoroutine(RestoreActions());
             }
         }
@@ -91,8 +92,8 @@ namespace ExpansionaryEditor
             // GUIStyle's native background references alone do not retain runtime textures
             // through UnloadUnusedAssets. Keep every owned texture alive on this component.
             if(titleStyle!=null&&chineseFont&&editorSkin&&background&&sidebarBackground&&lineTexture&&modalShade&&
-                controlTexture&&hoverTexture&&selectedTexture&&fieldTexture&&primaryTexture)return;
-            ReleaseUiResources();InitStyles();
+                controlTexture&&hoverTexture&&selectedTexture&&fieldTexture&&primaryTexture&&!refreshTheme)return;
+            ReleaseUiResources();InitStyles();refreshTheme=false;
         }
         void ReleaseUiResources()
         {
@@ -114,48 +115,58 @@ namespace ExpansionaryEditor
         }
         void InitStyles()
         {
-            chineseFont=Font.CreateDynamicFontFromOSFont(new[]{"Segoe UI","Microsoft YaHei UI","Microsoft YaHei"},22);
+            bool classic=ClassicUI;
+            chineseFont=Font.CreateDynamicFontFromOSFont(classic?new[]{"Microsoft YaHei","SimHei"}:new[]{"Segoe UI","Microsoft YaHei UI","Microsoft YaHei"},22);
             chineseFont.hideFlags=HideFlags.HideAndDontSave;
-            var text=new Color(.114f,.114f,.122f);var secondary=new Color(.40f,.40f,.43f);var blue=new Color(0,.42f,.96f);
-            background=RoundedTexture(Color.white);sidebarBackground=RoundedTexture(new Color(.955f,.955f,.968f));
-            lineTexture=Texture(new Color(.88f,.88f,.90f));modalShade=Texture(new Color(0,0,0,.28f));
-            controlTexture=RoundedTexture(new Color(.94f,.94f,.956f));hoverTexture=RoundedTexture(new Color(.90f,.93f,.98f));
-            selectedTexture=RoundedTexture(new Color(.87f,.925f,1));fieldTexture=RoundedTexture(new Color(.955f,.955f,.968f));
-            primaryTexture=RoundedTexture(blue);
-            surfaceStyle=new GUIStyle{border=new RectOffset(16,16,16,16)};surfaceStyle.normal.background=background;
-            sidebarStyle=new GUIStyle{border=new RectOffset(16,16,16,16)};sidebarStyle.normal.background=sidebarBackground;
+            var text=classic?new Color(.93f,.91f,.87f):new Color(.114f,.114f,.122f);
+            var secondary=classic?new Color(.68f,.72f,.76f):new Color(.40f,.40f,.43f);
+            var accent=classic?new Color(.90f,.77f,.55f):new Color(0,.42f,.96f);
+            background=ThemeTexture(classic?new Color(.125f,.14f,.16f):Color.white);
+            sidebarBackground=ThemeTexture(classic?new Color(.15f,.17f,.19f):new Color(.955f,.955f,.968f));
+            lineTexture=Texture(classic?new Color(.23f,.26f,.29f):new Color(.88f,.88f,.90f));
+            modalShade=Texture(new Color(0,0,0,classic?.70f:.28f));
+            controlTexture=ThemeTexture(classic?new Color(.19f,.21f,.24f):new Color(.94f,.94f,.956f));
+            hoverTexture=ThemeTexture(classic?new Color(.25f,.28f,.31f):new Color(.90f,.93f,.98f));
+            selectedTexture=ThemeTexture(classic?new Color(.27f,.25f,.20f):new Color(.87f,.925f,1));
+            fieldTexture=ThemeTexture(classic?new Color(.095f,.11f,.13f):new Color(.955f,.955f,.968f));
+            primaryTexture=ThemeTexture(accent);
+            surfaceStyle=new GUIStyle{border=ThemeBorder()};surfaceStyle.normal.background=background;
+            sidebarStyle=new GUIStyle{border=ThemeBorder()};sidebarStyle.normal.background=sidebarBackground;
             titleStyle=Style(28,text);titleStyle.fontStyle=FontStyle.Bold;
             labelStyle=Style(20,text);labelStyle.wordWrap=true;
             smallStyle=Style(20,secondary);smallStyle.wordWrap=true;
-            subStyle=Style(20,blue);subStyle.wordWrap=true;
-            columnStyle=Style(20,secondary);sectionStyle=Style(22,text);sectionStyle.fontStyle=FontStyle.Bold;sectionStyle.wordWrap=true;
-            buttonStyle=Style(20,text,TextAnchor.MiddleCenter);buttonStyle.padding=new RectOffset(12,12,6,6);buttonStyle.border=new RectOffset(16,16,16,16);
+            subStyle=Style(20,accent);subStyle.wordWrap=true;
+            columnStyle=Style(20,secondary);sectionStyle=Style(22,classic?accent:text);sectionStyle.fontStyle=FontStyle.Bold;sectionStyle.wordWrap=true;
+            buttonStyle=Style(20,text,TextAnchor.MiddleCenter);buttonStyle.padding=new RectOffset(12,12,6,6);buttonStyle.border=ThemeBorder();
             buttonStyle.normal.background=controlTexture;buttonStyle.hover.background=hoverTexture;buttonStyle.active.background=selectedTexture;
-            foreach(var state in new[]{buttonStyle.onNormal,buttonStyle.onHover,buttonStyle.onActive,buttonStyle.onFocused}){state.background=selectedTexture;state.textColor=blue;}
-            activeStyle=new GUIStyle(buttonStyle);activeStyle.normal.background=selectedTexture;activeStyle.normal.textColor=blue;
+            foreach(var state in new[]{buttonStyle.onNormal,buttonStyle.onHover,buttonStyle.onActive,buttonStyle.onFocused}){state.background=selectedTexture;state.textColor=accent;}
+            numberArrowStyle=new GUIStyle(buttonStyle);numberArrowStyle.padding=new RectOffset(2,2,6,6);
+            activeStyle=new GUIStyle(buttonStyle);activeStyle.normal.background=selectedTexture;activeStyle.normal.textColor=accent;
             primaryStyle=new GUIStyle(buttonStyle);primaryStyle.fontStyle=FontStyle.Bold;
-            foreach(var state in new[]{primaryStyle.normal,primaryStyle.hover,primaryStyle.active,primaryStyle.focused,primaryStyle.onNormal,primaryStyle.onHover,primaryStyle.onActive,primaryStyle.onFocused}){state.background=primaryTexture;state.textColor=Color.white;}
-            inputStyle=Style(22,text);inputStyle.padding=new RectOffset(14,12,6,6);inputStyle.border=new RectOffset(16,16,16,16);
-            inputStyle.normal.background=fieldTexture;inputStyle.hover.background=controlTexture;inputStyle.focused.background=selectedTexture;
-            modifiedInputStyle=new GUIStyle(inputStyle);modifiedInputStyle.normal.textColor=blue;modifiedInputStyle.fontStyle=FontStyle.Bold;
-            invalidInputStyle=new GUIStyle(inputStyle);invalidInputStyle.normal.textColor=new Color(.85f,.15f,.15f);invalidInputStyle.focused.textColor=invalidInputStyle.normal.textColor;
+            foreach(var state in new[]{primaryStyle.normal,primaryStyle.hover,primaryStyle.active,primaryStyle.focused,primaryStyle.onNormal,primaryStyle.onHover,primaryStyle.onActive,primaryStyle.onFocused})
+            {state.background=primaryTexture;state.textColor=classic?new Color(.125f,.14f,.16f):Color.white;}
+            inputStyle=Style(22,text);inputStyle.padding=new RectOffset(14,12,6,6);inputStyle.border=ThemeBorder();
+            inputStyle.normal.background=fieldTexture;inputStyle.hover.background=controlTexture;inputStyle.focused.background=classic?controlTexture:selectedTexture;
+            modifiedInputStyle=new GUIStyle(inputStyle);modifiedInputStyle.normal.textColor=StateColor(FieldVisualState.Saved);modifiedInputStyle.fontStyle=FontStyle.Bold;
+            invalidInputStyle=new GUIStyle(inputStyle);invalidInputStyle.normal.textColor=StateColor(FieldVisualState.Error);invalidInputStyle.focused.textColor=invalidInputStyle.normal.textColor;
             previewStyle=new GUIStyle(inputStyle);previewStyle.normal.textColor=secondary;
             valueLabelStyle=new GUIStyle(labelStyle);
-            checkStyle=Style(20,blue,TextAnchor.MiddleCenter);checkStyle.border=new RectOffset(16,16,16,16);checkStyle.padding=new RectOffset();
+            checkStyle=Style(20,accent,TextAnchor.MiddleCenter);checkStyle.border=ThemeBorder();checkStyle.padding=new RectOffset();
             checkStyle.normal.background=controlTexture;checkStyle.hover.background=hoverTexture;
-            foreach(var state in new[]{checkStyle.onNormal,checkStyle.onHover,checkStyle.onActive,checkStyle.onFocused}){state.background=selectedTexture;state.textColor=blue;}
-            listStyle=Style(20,text);listStyle.padding=new RectOffset(7,7,2,2);listStyle.border=new RectOffset(16,16,16,16);listStyle.hover.background=hoverTexture;
-            selectedListStyle=new GUIStyle(listStyle);selectedListStyle.normal.textColor=blue;selectedListStyle.fontStyle=FontStyle.Bold;
+            foreach(var state in new[]{checkStyle.onNormal,checkStyle.onHover,checkStyle.onActive,checkStyle.onFocused}){state.background=selectedTexture;state.textColor=accent;}
+            listStyle=Style(20,text);listStyle.padding=new RectOffset(7,7,2,2);listStyle.border=ThemeBorder();listStyle.hover.background=hoverTexture;
+            selectedListStyle=new GUIStyle(listStyle);selectedListStyle.normal.textColor=StateColor(FieldVisualState.Saved);selectedListStyle.fontStyle=FontStyle.Bold;
             groupStyle=Style(20,secondary);groupStyle.padding=new RectOffset(6,6,4,4);
-            stateBadgeStyle=Style(20,blue,TextAnchor.MiddleCenter);
+            stateBadgeStyle=Style(20,accent,TextAnchor.MiddleCenter);
             neutralBoolStyle=new GUIStyle(buttonStyle);
             foreach(var state in new[]{neutralBoolStyle.onNormal,neutralBoolStyle.onHover,neutralBoolStyle.onActive,neutralBoolStyle.onFocused}){state.background=controlTexture;state.textColor=text;}
             editorSkin=Instantiate(GUI.skin);editorSkin.hideFlags=HideFlags.HideAndDontSave;editorSkin.font=chineseFont;
-            editorSkin.verticalScrollbar.fixedWidth=14;editorSkin.verticalScrollbar.margin=new RectOffset(8,0,0,0);
-            editorSkin.verticalScrollbar.normal.background=null;
-            editorSkin.verticalScrollbarThumb.normal.background=controlTexture;editorSkin.verticalScrollbarThumb.hover.background=hoverTexture;
-            editorSkin.verticalScrollbarThumb.active.background=selectedTexture;editorSkin.verticalScrollbarThumb.fixedWidth=14;
-            editorSkin.verticalScrollbarThumb.fixedHeight=0;editorSkin.verticalScrollbarThumb.padding=new RectOffset();editorSkin.verticalScrollbarThumb.border=new RectOffset(12,12,12,12);
+            editorSkin.verticalScrollbar.fixedWidth=classic?18:14;editorSkin.verticalScrollbar.margin=new RectOffset(8,0,0,0);
+            editorSkin.verticalScrollbar.normal.background=classic?sidebarBackground:null;
+            editorSkin.verticalScrollbarThumb.normal.background=classic?hoverTexture:controlTexture;editorSkin.verticalScrollbarThumb.hover.background=hoverTexture;
+            editorSkin.verticalScrollbarThumb.active.background=selectedTexture;editorSkin.verticalScrollbarThumb.fixedWidth=classic?18:14;
+            editorSkin.verticalScrollbarThumb.fixedHeight=0;editorSkin.verticalScrollbarThumb.padding=new RectOffset();
+            editorSkin.verticalScrollbarThumb.border=classic?new RectOffset():new RectOffset(12,12,12,12);
         }
         void OnGUI()
         {
@@ -165,7 +176,7 @@ namespace ExpansionaryEditor
             var previousColor=GUI.color;var previousBackground=GUI.backgroundColor;var previousContent=GUI.contentColor;
             PrepareWindow();float scale=uiScale;
             string visibleError=!string.IsNullOrEmpty(error)?error:fileError?"配置错误":"";
-            float leftWidth=hideNavigation?0:304,gap=hideNavigation?0:28,padding=28;
+            float leftWidth=hideNavigation?0:ClassicUI?300:304,gap=hideNavigation?0:ClassicUI?18:28,padding=ClassicUI?20:28;
             var panel=editorRect;float width=panel.width,height=panel.height,x=panel.x,y=panel.y;
             var left=new Rect(x+padding,y+154,leftWidth,height-194);
             var right=new Rect(left.xMax+gap,y+152,width-padding*2-leftWidth-gap,height-246-(string.IsNullOrEmpty(visibleError)?0:60));
@@ -177,8 +188,9 @@ namespace ExpansionaryEditor
                 HandleWindow();HandleEditorKeys();inputOrder.Clear();
                 if(clearInputFocus){GUI.FocusControl(null);clearInputFocus=false;}
                 GUI.DrawTexture(new Rect(0,0,Screen.width/scale,Screen.height/scale),modalShade);GUI.Box(panel,GUIContent.none,surfaceStyle);
-                bool modal=!string.IsNullOrEmpty(confirm);GUI.enabled=previousEnabled&&!modal&&!sizingByClick;
-                GUI.Label(new Rect(x+padding,y+22,width-680,42),"数值编辑器",titleStyle);
+                bool modal=showSettings||!string.IsNullOrEmpty(confirm);GUI.enabled=previousEnabled&&!modal&&!sizingByClick;
+                GUI.Label(new Rect(x+padding,y+22,width-768,42),"数值编辑器",titleStyle);
+                if(GUI.Button(new Rect(panel.xMax-714,y+22,88,42),"设置",buttonStyle)){showSettings=true;GUI.FocusControl(null);}
                 if(GUI.Button(new Rect(panel.xMax-270,y+22,138,42),Settings.Enabled?"修改已启用":"修改已停用",Settings.Enabled?activeStyle:buttonStyle))Guard(ToggleOverrides);
                 if(GUI.Button(new Rect(panel.xMax-116,y+22,88,42),"关闭",buttonStyle))Toggle();
                 DrawWindowButtons(panel);
@@ -191,7 +203,7 @@ namespace ExpansionaryEditor
                 }
                 else GUI.Label(right,Status.StartsWith("目录加载失败")?"加载失败":"正在加载",sectionStyle);
                 if(!string.IsNullOrEmpty(visibleError))GUI.Label(new Rect(right.x,actions.y-62,right.width,54),visibleError,labelStyle);
-                GUI.enabled=previousEnabled;if(modal)DrawConfirm(panel);
+                GUI.enabled=previousEnabled;if(showSettings)DrawEditorSettings(panel);else if(!string.IsNullOrEmpty(confirm))DrawConfirm(panel);
                 focusedInput=GUI.GetNameOfFocusedControl()??"";
                 if(Event.current.type==EventType.MouseDown||Event.current.type==EventType.MouseUp||Event.current.type==EventType.ScrollWheel)Event.current.Use();
             }
@@ -200,7 +212,7 @@ namespace ExpansionaryEditor
         void HandleEditorKeys()
         {
             var ev=Event.current;
-            if(ev.type!=EventType.KeyDown||Composing||!string.IsNullOrEmpty(confirm))return;
+            if(ev.type!=EventType.KeyDown||Composing||showSettings||!string.IsNullOrEmpty(confirm))return;
             if((ev.control||ev.command)&&ev.keyCode==KeyCode.S){Guard(SaveDraft);ev.Use();}
             else if(ev.keyCode==KeyCode.Return||ev.keyCode==KeyCode.KeypadEnter){GUI.FocusControl(null);ev.Use();}
             else if(ev.keyCode==KeyCode.Tab&&inputOrder.Count>0)
@@ -231,7 +243,7 @@ namespace ExpansionaryEditor
                 if(string.IsNullOrEmpty(paramSearch)&&Event.current.type==EventType.Repaint){var rect=GUILayoutUtility.GetLastRect();rect.x+=14;GUI.Label(rect,"搜索",columnStyle);}
                 GUILayout.Space(12);
             }
-            if(tab<=3)DrawColumns();parameterFolds.SetQuery(paramSearch);rowLabelWidth=Mathf.Max(160,width-348);
+            if(tab<=3)DrawColumns();parameterFolds.SetQuery(paramSearch);rowLabelWidth=Mathf.Max(120,width-574);
             valuesScroll=GUILayout.BeginScrollView(valuesScroll,false,true,GUILayout.Height(Mathf.Max(100,height-128-(filtered?52:0)-(tab<=3?34:0))));
             if(tab==6)DrawLibrary();else if(selected==null)GUILayout.Label("未安装",sectionStyle);
             else if(tab==0)DrawStats();else if(tab==4)DrawBatch();else if(tab==5)DrawSummary();else if(tab==3)DrawAbilities();else DrawComponents();
@@ -251,9 +263,9 @@ namespace ExpansionaryEditor
         void DrawColumns()
         {
             Rect r=GUILayoutUtility.GetRect(1,34,GUILayout.ExpandWidth(true));r.width-=22;
-            GUI.Label(new Rect(r.x+10,r.y,r.width-344,34),"参数",columnStyle);
-            GUI.Label(new Rect(r.xMax-324,r.y,100,34),"原值",columnStyle);
-            GUI.Label(new Rect(r.xMax-212,r.y,144,34),"设置",columnStyle);
+            GUI.Label(new Rect(r.x+10,r.y,r.width-552,34),"参数",columnStyle);
+            GUI.Label(new Rect(r.xMax-532,r.y,100,34),"原值",columnStyle);
+            GUI.Label(new Rect(r.xMax-324,r.y,132,34),"设置",columnStyle);
         }
         void DrawStats()
         {
@@ -290,22 +302,22 @@ namespace ExpansionaryEditor
             var content=new GUIContent(label);float baseHeight=Mathf.Max(58,valueLabelStyle.CalcHeight(content,rowLabelWidth)+16);
             Rect r=GUILayoutUtility.GetRect(1,baseHeight+(issue.Length>0?34:0),GUILayout.ExpandWidth(true));
             if(state!=FieldVisualState.Default){Fill(r,StateBackground(state));Fill(new Rect(r.x,r.y+12,3,baseHeight-24),StateColor(state));}
-            GUI.Label(new Rect(r.x+12,r.y+4,r.width-352,baseHeight-8),content,labelStyle);
-            GUI.Label(new Rect(r.xMax-324,r.y+4,100,baseHeight-8),DisplayValue(original,type),columnStyle);
-            var input=new Rect(r.xMax-212,r.y+(baseHeight-42)/2,144,42);
+            GUI.Label(new Rect(r.x+12,r.y+4,r.width-552,baseHeight-8),content,labelStyle);
+            GUI.Label(new Rect(r.xMax-532,r.y+4,100,baseHeight-8),DisplayValue(original,type),columnStyle);
+            var input=new Rect(r.xMax-420,r.y+(baseHeight-42)/2,324,42);
             if(focused)Input.compositionCursorPos=GUIUtility.GUIToScreenPoint(new Vector2(input.x,input.yMax));
-            string old=value;GUI.SetNextControlName(control);
+            string old=value;
             if(type==typeof(bool))
-            {bool b=value=="true";bool next=GUI.Toggle(input,b,b?"开启":"关闭",neutralBoolStyle);value=next?"true":"false";}
+            {GUI.SetNextControlName(control);bool b=value=="true";bool next=GUI.Toggle(new Rect(input.x+96,input.y,132,input.height),b,b?"开启":"关闭",neutralBoolStyle);value=next?"true":"false";}
             else
             {
                 string display=!on&&!focused&&value=="Infinity"?"无限":value;
-                string entered=GUI.TextField(input,display,issue.Length>0?invalidInputStyle:on?modifiedInputStyle:inputStyle);
+                string entered=DrawNumberInput(input,control,key,display,type,issue.Length>0?invalidInputStyle:on?modifiedInputStyle:inputStyle);
                 if(entered!=display)value=entered;
             }
             if(value!=old){on=true;pendingTextCommit.Add(key);}
             bool enabled=GUI.enabled;GUI.enabled=enabled&&on;
-            if(GUI.Button(new Rect(r.xMax-60,r.y+(baseHeight-42)/2,58,42),"还原",listStyle))
+            if(GUI.Button(new Rect(r.xMax-84,r.y+(baseHeight-42)/2,82,42),"还原",listStyle))
             {on=false;value=original;fieldErrors.Remove(key);GUI.FocusControl(null);}
             GUI.enabled=enabled;
             if(issue.Length>0)GUI.Label(new Rect(r.x+12,r.y+baseHeight,r.width-16,34),issue,labelStyle);

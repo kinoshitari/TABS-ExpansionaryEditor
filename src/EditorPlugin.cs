@@ -13,7 +13,8 @@ using UnityEngine;
 
 namespace ExpansionaryEditor
 {
-    [BepInPlugin("local.tabs.expansionaryeditor", "TABS 兵种数值编辑器", "1.4.0")]
+    [BepInPlugin("local.tabs.expansionaryeditor", "TABS 兵种数值编辑器", "1.6.0")]
+    [BepInDependency("org.bepinex.plugins.SLMAcore", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("GeeztJeez.Expansionary", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("chouchou", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("dark", BepInDependency.DependencyFlags.SoftDependency)]
@@ -35,6 +36,7 @@ namespace ExpansionaryEditor
         public string DataDirectory {get;private set;}
         public string SettingsPath => Path.Combine(DataDirectory,"数值设置.json");
         public Harmony Harmony;
+        internal NativeMenuOrder MenuOrder;
         
         readonly Dictionary<string,Transform> prefabHosts = new Dictionary<string,Transform>();
         bool fileError;
@@ -47,6 +49,8 @@ namespace ExpansionaryEditor
             Directory.CreateDirectory(DataDirectory);
             LoadSettings();
             Harmony=new Harmony("local.tabs.expansionaryeditor");
+            MenuOrder=new NativeMenuOrder(this,message=>{error=message;Logger.LogError(message);});
+            MenuOrder.Install(Harmony);
             PatchDerivedTranslations();
             InitializeSources();
             Harmony.Patch(AccessTools.Method(typeof(UnitBlueprint),"GetUnitCost",new[]{typeof(bool)}),
@@ -233,6 +237,6 @@ namespace ExpansionaryEditor
                 Constants=e.Constants?.Select(s=>new {s.Key,s.Group,s.Label,s.Original})});
             File.WriteAllText(Path.Combine(DataDirectory,"兵种原始数据.json"),JsonConvert.SerializeObject(data,Formatting.Indented));
         }
-        void OnDestroy(){if(Visible)Input.imeCompositionMode=previousIme;ReleaseUiResources();if(Instance==this){Harmony?.UnpatchSelf();Instance=null;}}
+        void OnDestroy(){if(Visible)Input.imeCompositionMode=previousIme;MenuOrder?.Dispose();ReleaseUiResources();if(Instance==this){Harmony?.UnpatchSelf();Instance=null;}}
     }
 }

@@ -9,10 +9,12 @@ namespace ExpansionaryEditor
     {
         readonly FoldoutState parameterFolds = new FoldoutState();
         GUIStyle stateBadgeStyle, neutralBoolStyle;
-        static Color StateColor(FieldVisualState state) => state == FieldVisualState.Error ? new Color(.85f,.15f,.15f) :
-            state == FieldVisualState.Saved ? new Color(0,.42f,.96f) : new Color(.88f,.48f,0);
-        static Color StateBackground(FieldVisualState state) => state == FieldVisualState.Error ? new Color(1,.945f,.945f) :
-            state == FieldVisualState.Saved ? new Color(.95f,.975f,1) : new Color(1,.976f,.925f);
+        Color StateColor(FieldVisualState state) => ClassicUI ?
+            (state==FieldVisualState.Error?new Color(1,.54f,.42f):state==FieldVisualState.Saved?new Color(.43f,.78f,.60f):new Color(.98f,.75f,.37f)) :
+            (state==FieldVisualState.Error?new Color(.85f,.15f,.15f):state==FieldVisualState.Saved?new Color(0,.42f,.96f):new Color(.88f,.48f,0));
+        Color StateBackground(FieldVisualState state) => ClassicUI ?
+            (state==FieldVisualState.Error?new Color(.31f,.16f,.15f):state==FieldVisualState.Saved?new Color(.18f,.25f,.22f):new Color(.28f,.24f,.16f)) :
+            (state==FieldVisualState.Error?new Color(1,.945f,.945f):state==FieldVisualState.Saved?new Color(.95f,.975f,1):new Color(1,.976f,.925f));
         static void Fill(Rect rect,Color color)
         {var old=GUI.color;GUI.color=color;GUI.DrawTexture(rect,Texture2D.whiteTexture);GUI.color=old;}
         void DrawStateBadge(Rect rect,FieldVisualState state,string text=null)

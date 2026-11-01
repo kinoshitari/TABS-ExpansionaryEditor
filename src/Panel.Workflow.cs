@@ -56,8 +56,9 @@ namespace ExpansionaryEditor
                 GUILayout.Space(12);int basis=GUILayout.Toolbar(batchBasis,new[]{"原值","当前值"},buttonStyle,GUILayout.Height(44));
                 if(basis!=batchBasis){batchBasis=basis;InvalidateBatch();}
             }
-            GUILayout.Space(16);GUILayout.BeginHorizontal();GUI.SetNextControlName("bulk-number");
-            string value=GUILayout.TextField(bulkFactor,inputStyle,GUILayout.Height(44));if(value!=bulkFactor){bulkFactor=value;InvalidateBatch();}
+            GUILayout.Space(16);GUILayout.BeginHorizontal();inputOrder.Add("bulk-number");
+            Rect numberRect=GUILayoutUtility.GetRect(324,44,GUILayout.ExpandWidth(true));
+            string value=DrawNumberInput(numberRect,"bulk-number","batch",bulkFactor,typeof(double),inputStyle);if(value!=bulkFactor){bulkFactor=value;InvalidateBatch();}
             GUILayout.Space(12);if(GUILayout.Button("预览",buttonStyle,GUILayout.Width(104),GUILayout.Height(44)))Guard(PrepareBatch);
             GUILayout.EndHorizontal();
             if(batchRows!=null)
@@ -133,10 +134,11 @@ namespace ExpansionaryEditor
                 }
                 if(historyRows.Count==0)GUILayout.Label("无",columnStyle);
             }
-            if(DrawFold("manage","管理",2,0,0,false))
+            if(DrawFold("manage","管理",3,0,0,false))
             {
                 GUILayout.BeginHorizontal();if(GUILayout.Button("重新读取",buttonStyle,GUILayout.Height(44))){if(dirty)confirm="reload";else Guard(()=>{Reload();Select(selected);});}
                 GUILayout.Space(12);if(GUILayout.Button("全部还原",buttonStyle,GUILayout.Height(44)))confirm="all";GUILayout.EndHorizontal();
+                GUILayout.Space(12);if(GUILayout.Button("还原兵种排序",buttonStyle,GUILayout.Height(44)))confirm="menu-order-reset";
             }
         }
         void DrawPresetLibrary(string kind,string title)
@@ -162,6 +164,7 @@ namespace ExpansionaryEditor
             {
                 case "module":case "switch":case "reload":return "放弃未保存更改？";
                 case "unit":return "还原「"+Labels.UnitName(selected)+"」？";
+                case "menu-order-reset":return "还原所有派系内的兵种顺序？";
                 case "batch-reset":return "还原已选？\n"+batch.Count+" 个兵种";
                 case "module-reset":return "还原 "+SourceName(moduleFilter)+"？\n"+ModuleEntries().Count(e=>Settings.Units.ContainsKey(e.Key))+" 个兵种";
                 case "all":return "全部还原？\n"+string.Join(" · ",moduleIds.Select(m=>SourceName(m)+" "+Entries.Count(e=>e.Module==m&&Settings.Units.ContainsKey(e.Key))))+"\n其他 "+Settings.Units.Keys.Count(k=>!ByKey.ContainsKey(k));
@@ -190,7 +193,8 @@ namespace ExpansionaryEditor
                         case "unit":RestoreKeys(new[]{selected.Key},"恢复当前兵种");break;
                         case "batch-reset":RestoreKeys(batch,"恢复已勾选兵种");break;
                         case "module-reset":RestoreKeys(ModuleEntries().Select(e=>e.Key),"恢复「"+SourceName(moduleFilter)+"」模块");break;
-                        case "all":RestoreKeys(Settings.Units.Keys,"恢复全部四模块");break;
+                        case "all":RestoreKeys(Settings.Units.Keys,"恢复全部来源");break;
+                        case "menu-order-reset":MenuOrder.ResetUnits();break;
                         case "history":RestoreHistory();break;
                         case "overwrite-preset":SavePreset(pendingPresetPath);break;
                         case "rename-preset":

@@ -6,7 +6,7 @@
 
 1. 选择 TABS 和目标配置。
 2. 打开“设置”，选择“导入本地模组 / Import local mod”。
-3. 选择 **Local-ExpansionaryEditor-1.4.0.zip**，不要解压或改名。
+3. 选择 **Local-ExpansionaryEditor-1.6.0.zip**，不要解压或改名。
 4. 启动模组版游戏。
 
 若之前使用手工安装版，请使用原来的配置。包名仍为 Local-ExpansionaryEditor，插件 GUID 和数值目录不变。
@@ -15,16 +15,27 @@
 
 原版、HiddenUnits、臭臭、Expansionary、Holiday、AnimalKingdom。
 
-圣诞节对应 **Holiday 2.2.1**，动物王国对应 **AnimalKingdom 1.0.4**。这些来源模组是可选项，需要在同一配置中安装并启用；本包只包含编辑器，不捆绑第三方兵种模组。
+圣诞节对应 **Holiday 2.2.1**，动物王国对应 **AnimalKingdom 1.0.4**。管理器将这五类扩展列为前置，BepInEx 也在前置中。插件端均为软依赖：未安装或停用扩展时仍可编辑原版。只有要编辑的扩展需要启用，本包不捆绑第三方兵种文件。
+
+只用原版时保留 BepInEx 和编辑器即可。不希望管理器解析扩展前置时，将 ZIP 内的编辑器 DLL 放入当前配置的 `BepInEx/plugins/Local-ExpansionaryEditor`；不要保留重复 DLL。
 
 ## 编辑
 
 - 属性、左右手、可识别技能。
+- 数值框 `<< / < / > / >>` 分级增减：单箭头 1%，双箭头 10%；整数至少变化 1，零值按基数 1 起调。
+- 顶部“设置”可切换浅色极简与经典深色，自动记住选择，保留草稿与数值。
+- 打开游戏“更多派系”后拖动兵种图标排序，支持边缘滚动并自动保存；顶部派系标签保留原生拖拽。
 - 批量乘算、设值、增减与预览。
 - 全局、Mod、派系预设及历史恢复。
 - 支持日文输入法的组合输入与全角数字。
 
 价格立即更新，其他数值需重新摆放兵种或重开关卡。
+
+## 菜单排序
+
+拖动时蓝线表示插入位置，松开自动保存。同一派系内调整显示顺序，不改变归属。Esc、切换派系或关闭面板取消拖动。
+
+F6 → 预设 → 管理 → 还原兵种排序，可确认恢复所有兵种的原生顺序。排序独立保存在 `BepInEx/config/ExpansionaryEditor/菜单排序.json`，不随数值预设导入或导出。
 
 ## 数据
 
@@ -32,7 +43,7 @@
 
 ## 更新边界
 
-1.4.0 按作者要求只构建和打包，没有进行测试、实际导入、界面预览或游戏验证。
+1.6.0 按作者要求只构建和打包，没有进行测试、实际导入、界面预览或游戏验证。
 
 包装依据：[Thunderstore 包格式](https://wiki.thunderstore.io/mods/creating-a-package)、[BepInEx 文件布局](https://wiki.thunderstore.io/mods/packaging-your-mods)。
 
