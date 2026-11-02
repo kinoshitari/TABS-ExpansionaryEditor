@@ -1,6 +1,6 @@
 {
   "name": "ExpansionaryEditor",
-  "version_number": "1.6.1",
+  "version_number": "1.6.2",
   "website_url": "https://github.com/kinoshitari/TABS-ExpansionaryEditor",
   "description": "F6 六来源兵种编辑器。分级增减、浅色/经典界面、兵种拖动排序、批量及预设；扩展来源为运行时软依赖，支持原版单独使用。",
   "dependencies": [

@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -29,11 +28,13 @@ namespace ExpansionaryEditor
         static readonly FieldInfo ExpandedOpen=AccessTools.Field(typeof(ExpandedFactionUI),"open");
         static readonly FieldInfo UnitPlacement=AccessTools.Field(typeof(UnitButton),"m_placementUI");
         static readonly FieldInfo GameState=AccessTools.Field(typeof(PlacementUI),"m_gameStateManager");
-        static readonly FieldInfo FarLeft=AccessTools.Field(typeof(UILayoutGroup),"m_farLeftIndex");
+        static readonly FieldInfo Elements=AccessTools.Field(typeof(UILayoutGroup),"m_elements");
+        static readonly FieldInfo SpawnedElements=AccessTools.Field(typeof(UILayoutGroup),"m_spawnedElements");
         static readonly FieldInfo UnitIds=AccessTools.Field(typeof(PlacementUI),"m_unitIDs");
         static readonly FieldInfo LastUnit=AccessTools.Field(typeof(PlacementUI),"m_lastSelectedUnit");
         static readonly FieldInfo LastIndex=AccessTools.Field(typeof(PlacementUI),"m_lastSelectedUnitIndex");
-        static readonly MethodInfo Redraw=AccessTools.Method(typeof(PlacementUI),"RedrawFactionUnits");
+        static readonly FieldInfo SelectedButton=AccessTools.Field(typeof(PlacementUI),"m_selectedButton");
+        static readonly MethodInfo UpdatedList=AccessTools.Method(typeof(UILayoutGroup),"UpdatedListPos");
         readonly string path;
         readonly Action<string> report;
         readonly Action<string> trace;
@@ -132,25 +133,42 @@ namespace ExpansionaryEditor
         internal void RefreshUnits(PlacementUI owner)
         {
             var faction=FactionOf(owner);var layout=LayoutOf(owner);if(!faction||!layout)return;
-            int first=(int)FarLeft.GetValue(layout);
-            Redraw.Invoke(owner,new object[]{faction});
+            var elements=(List<UILayoutGroup.ElementDataWrapper>)Elements.GetValue(layout);
+            if(elements==null||elements.Count==0)return;
+            var ranks=new Dictionary<string,int>();
+            foreach(var unit in faction.GetRearrangedUnits())
+                if(unit&&!ranks.ContainsKey(Id(unit.Entity.GUID)))ranks.Add(Id(unit.Entity.GUID),ranks.Count);
+            // Keep the native unlock/campaign filtering and button data. Only their
+            // order changes; rebuilding the row destroys its live, paged buttons.
+            var sorted=elements.OrderBy(e=>e.unitData?.unit&&ranks.TryGetValue(Id(e.unitData.unit.Entity.GUID),out var rank)?rank:int.MaxValue).ToArray();
+            var selected=(DatabaseID)LastUnit.GetValue(null);
+            var previous=SelectedButton.GetValue(owner) as UnitButton;
+            if(previous)previous.Deselect();
+            SelectedButton.SetValue(owner,null);
+            for(int i=0;i<sorted.Length;i++)elements[i]=sorted[i];
             var ids=(List<DatabaseID>)UnitIds.GetValue(owner);
-            LastIndex.SetValue(owner,ids.IndexOf((DatabaseID)LastUnit.GetValue(null)));
-            owner.StartCoroutine(RestoreScroll(owner,faction,layout,first));
-        }
-
-        IEnumerator RestoreScroll(PlacementUI owner,Faction faction,UILayoutGroup layout,int first)
-        {
-            // Let the native layout rebuild before returning to the same visible page.
-            yield return null;
-            if(!owner||!layout||FactionOf(owner)!=faction)yield break;
-            try
+            ids.Clear();ids.AddRange(sorted.Where(e=>e.unitData?.unit).Select(e=>e.unitData.unit.Entity.GUID));
+            LastIndex.SetValue(owner,ids.IndexOf(selected));
+            UnitButton selectedButton=null;
+            var spawned=(List<UILayoutGroup.SpawnedElementWrapper>)SpawnedElements.GetValue(layout);
+            if(spawned!=null)foreach(var slot in spawned)
             {
-                int count=((List<DatabaseID>)UnitIds.GetValue(owner)).Count;
-                int offset=Math.Min(first,Math.Max(0,count-layout.elementsShown));
-                if(offset>0)layout.MoveList(true,offset);
+                if(!slot.gameObject||slot.dataIndex<0||slot.dataIndex>=elements.Count)continue;
+                var button=slot.gameObject.GetComponent<UnitButton>();if(!button)continue;
+                var entry=elements[slot.dataIndex].unitData;if(entry==null||!entry.unit)continue;
+                if(button.UnitID!=entry.unit.Entity.GUID)
+                {
+                    // Cancel only this reused button's old highlight/selection
+                    // animation before binding its new native UnitButtonData.
+                    button.StopAllCoroutines();button.Deselect();button.SetupUnit(entry);
+                }
+                if(button.UnitID==selected&&button.Unlocked)selectedButton=button;
             }
-            catch(Exception ex){Report("排序已保存，列表滚动未恢复："+ex.Message);}
+            if(selectedButton){selectedButton.OnEnter();selectedButton.SelectUnit(false);selectedButton.OnExit();}
+            // Existing slot indices, positions and scroll offset remain intact,
+            // including an edge-scroll animation already in progress.
+            if(spawned!=null&&spawned.Count>0)UpdatedList.Invoke(layout,null);
+            trace("ORDER REFRESHED "+Id(faction.Entity.GUID)+": "+ids.Count+" units");
         }
 
         internal void Report(string message)=>report(message);

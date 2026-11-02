@@ -6,7 +6,7 @@
 
 1. 选择 TABS 和目标配置。
 2. 打开“设置”，选择“导入本地模组 / Import local mod”。
-3. 选择 **Local-ExpansionaryEditor-1.6.1.zip**，不要解压或改名。
+3. 选择 **Local-ExpansionaryEditor-1.6.2.zip**，不要解压或改名。
 4. 启动模组版游戏。
 
 若之前使用手工安装版，请使用原来的配置。包名仍为 Local-ExpansionaryEditor，插件 GUID 和数值目录不变。
@@ -33,7 +33,7 @@
 
 ## 菜单排序
 
-先关闭 F6 编辑器并打开原生“更多派系”。按住兵种图标移动，超过拖动阈值后显示蓝色插入线，松开自动保存；普通点击仍正常选择。同一派系内调整显示顺序，不改变归属。Esc、切换派系或关闭面板取消拖动。
+先关闭 F6 编辑器并打开原生“更多派系”。按住兵种图标移动，超过拖动阈值后显示蓝色插入线，松开自动保存并就地更新列表，保留当前页和选中兵种；普通点击仍正常选择。同一派系内调整显示顺序，不改变归属。Esc、切换派系或关闭面板取消拖动。
 
 F6 → 预设 → 管理 → 还原兵种排序，可确认恢复所有兵种的原生顺序。排序独立保存在 `BepInEx/config/ExpansionaryEditor/菜单排序.json`，不随数值预设导入或导出。
 
@@ -43,7 +43,7 @@ F6 → 预设 → 管理 → 还原兵种排序，可确认恢复所有兵种的
 
 ## 更新边界
 
-1.6.1 按作者要求只构建和打包，没有进行测试、实际导入、界面预览或游戏验证。
+1.6.2 已构建并打包，未进行测试、实际 r2modman 导入、界面预览或游戏验证。
 
 包装依据：[Thunderstore 包格式](https://wiki.thunderstore.io/mods/creating-a-package)、[BepInEx 文件布局](https://wiki.thunderstore.io/mods/packaging-your-mods)。
 

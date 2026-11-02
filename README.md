@@ -1,10 +1,10 @@
 # TABS 数值编辑器
 
-TABS 游戏内兵种数值编辑器，当前版本 **1.6.1**。按 **F6** 打开或关闭。
+TABS 游戏内兵种数值编辑器，当前版本 **1.6.2**。按 **F6** 打开或关闭。
 
 ## 安装与更新
 
-从 [v1.6.1 Release](https://github.com/kinoshitari/TABS-ExpansionaryEditor/releases/tag/v1.6.1) 下载 `Local-ExpansionaryEditor-1.6.1.zip`。
+从 [v1.6.2 Release](https://github.com/kinoshitari/TABS-ExpansionaryEditor/releases/tag/v1.6.2) 下载 `Local-ExpansionaryEditor-1.6.2.zip`。
 
 在 r2modman 选择 TABS 和目标配置，打开 **设置 → Import local mod（导入本地模组）**，选择 ZIP，无需解压。使用原配置更新，原数值与预设继续保留。
 
@@ -16,7 +16,7 @@ TABS 游戏内兵种数值编辑器，当前版本 **1.6.1**。按 **F6** 打开
 - 属性、左右手武器、弹丸及可识别技能字段。
 - 数值框 `<< / < / > / >>` 分级增减：单箭头 1%，双箭头 10%，整数至少变化 1。
 - 乘算、设值、增减的批量预览与应用。
-- 打开“更多派系”后拖动派系内兵种排序，显示插入线并支持边缘滚动；顶部派系标签沿用游戏原生拖拽。排序由统一鼠标命中控制器接管，不依赖按钮的启停回调。
+- 打开“更多派系”后拖动派系内兵种排序，显示插入线并支持边缘滚动；顶部派系标签沿用游戏原生拖拽。拖后就地更新现有按钮，保留当前页和选中兵种。
 - 全局、Mod、派系预设，修改摘要与历史恢复。
 - 设置中即时切换浅色极简与经典深色界面，记住风格；两种风格均保留大字号、派系折叠和修改标识。
 
@@ -69,7 +69,7 @@ dotnet build .\ExpansionaryEditor.csproj -c Release --no-restore `
 .\Build-Mod.ps1 -SkipBuild
 ```
 
-输出位于 `dist/Local-ExpansionaryEditor-1.6.1.zip`。打包脚本不会覆盖同版本的已有输出；重打包前先移走 `dist` 中的同名 ZIP 与 `build/mod-1.6.1`。
+输出位于 `dist/Local-ExpansionaryEditor-1.6.2.zip`。打包脚本不会覆盖同版本的已有输出；重打包前先移走 `dist` 中的同名 ZIP 与 `build/mod-1.6.2`。
 
 也可退出游戏后手工安装构建的 DLL。已有 r2modman 登记时，脚本同步本编辑器的版本与前置清单；不修改其他模组的启停状态：
 
@@ -77,6 +77,6 @@ dotnet build .\ExpansionaryEditor.csproj -c Release --no-restore `
 .\Install.ps1 -ProfileRoot 'D:\r2modman-data\TABS\profiles\Default'
 ```
 
-## 1.6.1 交付状态
+## 1.6.2 交付状态
 
 源码已构建并生成模组包。按本次要求，未运行测试、实际 r2modman 导入、界面预览或游戏验证。
