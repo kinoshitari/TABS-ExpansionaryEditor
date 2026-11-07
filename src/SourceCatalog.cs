@@ -34,7 +34,7 @@ namespace ExpansionaryEditor
         static Type LoadedType(string name)=>AppDomain.CurrentDomain.GetAssemblies().Select(a=>a.GetType(name)).FirstOrDefault(t=>t!=null);
         static Type ActiveSourceType(string name,string pluginGuid)=>Chainloader.PluginInfos.ContainsKey(pluginGuid)?LoadedType(name):null;
         public static string SourceName(string id)
-        {switch(id){case "Vanilla":return "原版";case "HiddenUnits":return "隐藏";case "ChouChou":return "臭臭";case "Expansionary":return "扩张";case "Holiday":return "圣诞节";case "AnimalKingdom":return "动物王国";default:return id;}}
+        {switch(id){case "Vanilla":return "原版";case "HiddenUnits":return "隐藏";case "ChouChou":return "臭臭";case "Expansionary":return "扩张";case "Holiday":return "圣诞节";case "AnimalKingdom":return "动物王国";case "ChineseMyth":return "中国神话";default:return id;}}
         public static string ComponentId(Type type)=>CombatAssemblies.Contains(type.Assembly)&&type.Namespace!="AddonExpansionary"?
             type.FullName+"@"+type.Assembly.GetName().Name:type.FullName;
         static DM.LandfallContentDatabase CurrentDatabase()
@@ -50,6 +50,9 @@ namespace ExpansionaryEditor
             RegisterSource("DARK.CManager","DARK.Loader",new SourceSpec("ChouChou","ChouChou/Part2","臭臭模组 · 第二部分"),true,"dark");
             RegisterSource("rwdseerfd.UManager","rwdseerfd.Loader",new SourceSpec("ChouChou","ChouChou/Part3","臭臭模组 · 第三部分"),true,"rwdseerfd");
             RegisterSource("ChouChouMap.UManager","ChouChouMap.Loader",new SourceSpec("ChouChou","ChouChou/Map","臭臭模组 · 地图附属"),true,"ChouChouMap");
+            // SLMACore creates these blueprints at runtime. Like the other manager
+            // sources, persist their raw names rather than generated database IDs.
+            RegisterSource("ChineseMythology.UManager","ChineseMythology.Loader",new SourceSpec("ChineseMyth","ChineseMyth","中国神话"),true,"monkeyking");
             var hidden=ActiveSourceType("HiddenUnits.HUMain","teamgrad.hiddenunits");if(hidden!=null)CombatAssemblies.Add(hidden.Assembly);
             var holiday=ActiveSourceType("Holiday.HolidayMain","teamgrad.holiday");if(holiday!=null)CombatAssemblies.Add(holiday.Assembly);
             var animal=ActiveSourceType("AnimalKingdom.AKMain","teamgrad.animalkingdom");if(animal!=null)CombatAssemblies.Add(animal.Assembly);

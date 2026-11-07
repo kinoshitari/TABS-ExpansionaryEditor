@@ -1,14 +1,15 @@
 {
   "name": "ExpansionaryEditor",
-  "version_number": "1.6.2",
+  "version_number": "1.7.0",
   "website_url": "https://github.com/kinoshitari/TABS-ExpansionaryEditor",
-  "description": "F6 六来源兵种编辑器。分级增减、浅色/经典界面、兵种拖动排序、批量及预设；扩展来源为运行时软依赖，支持原版单独使用。",
+  "description": "F6 七来源兵种编辑器。分级增减、浅色/经典界面、兵种拖动排序、批量及预设；扩展来源为运行时软依赖，支持原版单独使用。",
   "dependencies": [
     "BepInEx-BepInExPack_TABS-5.4.16",
     "Grad-HiddenUnits-2.0.9",
     "Chou_Chou_Team-ChouChou_s_Unit-0.5.0",
     "Geezt-Expansionary-1.2.9",
     "Grad-Holiday-2.2.1",
-    "Grad-AnimalKingdom-1.0.4"
+    "Grad-AnimalKingdom-1.0.4",
+    "Chou_Chou_Team-Chinese_myth-0.2.1"
   ]
 }

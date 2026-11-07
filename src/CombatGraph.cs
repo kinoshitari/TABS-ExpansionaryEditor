@@ -139,7 +139,7 @@ namespace ExpansionaryEditor
                 if (Numbers.Scalar(field.FieldType))
                 {
                     var slot=new ValueSlot {Key=key,Group=group,Path=objectName,ComponentName=Labels.Component(type),FieldName=field.Name,
-                        Label=Labels.ReadableLabel(field.Name),ComponentType=ownerType,Type=field.FieldType,Original=Numbers.Text(value),Assign=s=>field.SetValue(obj,Numbers.Parse(s,field.FieldType)),Readable=Labels.ReadableField(field.Name)};
+                        Label=Labels.ReadableLabel(field.Name,type),ComponentType=ownerType,Type=field.FieldType,Original=Numbers.Text(value),Assign=s=>field.SetValue(obj,Numbers.Parse(s,field.FieldType)),Readable=Labels.ReadableField(field.Name,type)};
                     if(obj is EventCondition condition)DescribeCondition(slot,condition);
                     Add(slot);
                 }

@@ -135,7 +135,7 @@ namespace ExpansionaryEditor
             preset.EditorVersion=Info.Metadata.Version.ToString();preset.Modules=ModuleVersions();
             if(preset.Scope!=null)
             {
-                var allowed=preset.Scope.Module=="Expansionary"?new[]{"GeeztJeez.Expansionary"}:preset.Scope.Module=="HiddenUnits"?new[]{"teamgrad.hiddenunits","teamgrad.core"}:preset.Scope.Module=="ChouChou"?new[]{"chouchou","dark","rwdseerfd","ChouChouMap"}:preset.Scope.Module=="Holiday"?new[]{"teamgrad.holiday","teamgrad.core"}:preset.Scope.Module=="AnimalKingdom"?new[]{"teamgrad.animalkingdom"}:new string[0];
+                var allowed=preset.Scope.Module=="Expansionary"?new[]{"GeeztJeez.Expansionary"}:preset.Scope.Module=="HiddenUnits"?new[]{"teamgrad.hiddenunits","teamgrad.core"}:preset.Scope.Module=="ChouChou"?new[]{"chouchou","dark","rwdseerfd","ChouChouMap"}:preset.Scope.Module=="Holiday"?new[]{"teamgrad.holiday","teamgrad.core"}:preset.Scope.Module=="AnimalKingdom"?new[]{"teamgrad.animalkingdom"}:preset.Scope.Module=="ChineseMyth"?new[]{"monkeyking","org.bepinex.plugins.SLMAcore"}:new string[0];
                 preset.Modules=preset.Modules.Where(p=>allowed.Contains(p.Key)).ToDictionary(p=>p.Key,p=>p.Value);
             }
             return preset;
@@ -149,7 +149,7 @@ namespace ExpansionaryEditor
             return EditData.PresetPath(directory,name);
         }
         Dictionary<string,string> ModuleVersions() => Chainloader.PluginInfos.Values.Where(p => new[] {
-            "GeeztJeez.Expansionary", "teamgrad.hiddenunits", "teamgrad.core", "chouchou", "dark", "rwdseerfd", "ChouChouMap", "teamgrad.holiday", "teamgrad.animalkingdom"
+            "GeeztJeez.Expansionary", "teamgrad.hiddenunits", "teamgrad.core", "chouchou", "dark", "rwdseerfd", "ChouChouMap", "teamgrad.holiday", "teamgrad.animalkingdom", "monkeyking", "org.bepinex.plugins.SLMAcore"
         }.Contains(p.Metadata.GUID)).ToDictionary(p => p.Metadata.GUID, p => p.Metadata.Version.ToString());
         void SavePreset(string path)
         {

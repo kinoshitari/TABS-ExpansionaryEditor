@@ -5,7 +5,7 @@ namespace ExpansionaryEditor
 {
     public sealed partial class EditorPlugin
     {
-        readonly string[] moduleIds={"Vanilla","HiddenUnits","ChouChou","Expansionary","Holiday","AnimalKingdom"};
+        readonly string[] moduleIds={"Vanilla","HiddenUnits","ChouChou","Expansionary","Holiday","AnimalKingdom","ChineseMyth"};
         string moduleFilter="Expansionary",pendingModule;
         System.Collections.Generic.IEnumerable<UnitEntry> ModuleEntries()=>Entries.Where(e=>e.Module==moduleFilter);
         void DrawModules(Rect rect)

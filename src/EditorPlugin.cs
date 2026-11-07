@@ -13,7 +13,7 @@ using UnityEngine;
 
 namespace ExpansionaryEditor
 {
-    [BepInPlugin("local.tabs.expansionaryeditor", "TABS 兵种数值编辑器", "1.6.2")]
+    [BepInPlugin("local.tabs.expansionaryeditor", "TABS 兵种数值编辑器", "1.7.0")]
     [BepInDependency("org.bepinex.plugins.SLMAcore", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("GeeztJeez.Expansionary", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("chouchou", BepInDependency.DependencyFlags.SoftDependency)]
@@ -24,6 +24,7 @@ namespace ExpansionaryEditor
     [BepInDependency("teamgrad.hiddenunits", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("teamgrad.holiday", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("teamgrad.animalkingdom", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("monkeyking", BepInDependency.DependencyFlags.SoftDependency)]
     public sealed partial class EditorPlugin : BaseUnityPlugin
     {
         public static EditorPlugin Instance;

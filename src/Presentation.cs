@@ -151,8 +151,19 @@ namespace ExpansionaryEditor
             }
         }
 
-        public static bool ReadableField(string name)=>Fields.ContainsKey(name)||ExtraFields.ContainsKey(name)||name.Any(c=>c>='\u4e00'&&c<='\u9fff');
-        public static string ReadableLabel(string name)=>name.Any(c=>c>='\u4e00'&&c<='\u9fff')?name:ExtraFields.TryGetValue(name,out var text)?text:Field(name);
+        public static bool ReadableField(string name)=>ReadableField(name,null);
+        public static bool ReadableField(string name,Type componentType)=>
+            componentType!=null&&ComponentFields.ContainsKey(componentType.FullName+"/"+name)||
+            Fields.ContainsKey(name)||ExtraFields.ContainsKey(name)||name.Any(c=>c>='\u4e00'&&c<='\u9fff');
+        public static string ReadableLabel(string name)=>ReadableLabel(name,null);
+        public static string ReadableLabel(string name,Type componentType)=>
+            componentType!=null&&ComponentFields.TryGetValue(componentType.FullName+"/"+name,out var label)?label:
+            name.Any(c=>c>='\u4e00'&&c<='\u9fff')?name:ExtraFields.TryGetValue(name,out var text)?text:Field(name);
+        static readonly Dictionary<string,string> ComponentFields=new Dictionary<string,string> {
+            {"MonkeyArmor/armorhealth","护甲强度"},{"MonkeyKingArmor/armorhealth","护甲强度"},
+            {"WeaponScaleChange/cooldownTime","伸缩冷却（秒）"},
+            {"SuperStick/rotationSpeed","旋转速度（度/秒）"},{"SuperStick/growthSpeed","推进速度"}
+        };
         static readonly Dictionary<string,string> ExtraFields=new Dictionary<string,string> {
             {"range","触发距离"},{"activationRange","发动距离"},{"attackRange","攻击距离"},
             {"damageAmount","伤害"},{"amountToSpawn","召唤数量"},{"numberToSpawn","生成数量"},{"timeBetweenSpawns","连续生成间隔（秒）"},
@@ -194,7 +205,9 @@ namespace ExpansionaryEditor
             {"AirhoundTechnics","空中猎犬特技"},{"ClusterMechanique","集束攻击"},{"SubmarineTechnics","潜艇特技"},
             {"F22Technics","喷气机特技"},{"TeleportProjectile","传送弹丸"},{"ProjToGold","点石成金"},
             {"RukyrionDivider","征服者分裂"},{"LightProjectionScan","光学扫描"},{"ProjectorFunction","投影特性"},
-            {"RangedDuel","远程决斗"},{"GroundSkinner","地表效果"},{"VulcanConcussiveBlast","火神震荡爆破"}
+            {"RangedDuel","远程决斗"},{"GroundSkinner","地表效果"},{"VulcanConcussiveBlast","火神震荡爆破"},
+            {"MonkeyArmor","弹反护甲"},{"MonkeyKingArmor","猴王护甲"},
+            {"WeaponScaleChange","金箍棒伸缩"},{"SuperStick","超级一棒"}
         };
         public static AbilityInfo IntrinsicAbility(Type type,string path,string group)
         {
