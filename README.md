@@ -1,10 +1,12 @@
 # TABS 数值编辑器
 
-TABS 游戏内兵种数值编辑器，当前版本 **1.8.1**。按 **F6** 打开或关闭。
+TABS 游戏内兵种数值编辑器，当前版本 **1.8.2**。按 **F6** 打开或关闭。
+
+此版本修复扫描臭臭模组无方法体成员时导致的“加载失败”，保留伤害来源注释及原有编辑功能。
 
 ## 安装与更新
 
-从 [v1.8.1 Release](https://github.com/kinoshitari/TABS-ExpansionaryEditor/releases/tag/v1.8.1) 下载 `Local-ExpansionaryEditor-1.8.1.zip`。
+从 [v1.8.2 Release](https://github.com/kinoshitari/TABS-ExpansionaryEditor/releases/tag/v1.8.2) 下载 `Local-ExpansionaryEditor-1.8.2.zip`。
 
 在 r2modman 选择 TABS 和目标配置，打开 **设置 → Import local mod（导入本地模组）**，选择 ZIP，无需解压。使用原配置更新，原数值与预设继续保留。
 
@@ -76,7 +78,7 @@ dotnet build .\ExpansionaryEditor.csproj -c Release --no-restore `
 .\Build-Mod.ps1 -SkipBuild
 ```
 
-输出位于 `dist/Local-ExpansionaryEditor-1.8.1.zip`。打包脚本不会覆盖同版本的已有输出；重打包前先移走 `dist` 中的同名 ZIP 与 `build/mod-1.8.1`。
+输出位于 `dist/Local-ExpansionaryEditor-1.8.2.zip`。打包脚本不会覆盖同版本的已有输出；重打包前先移走 `dist` 中的同名 ZIP 与 `build/mod-1.8.2`。
 
 也可退出游戏后手工安装构建的 DLL。已有 r2modman 登记时，脚本同步本编辑器的版本与前置清单；不修改其他模组的启停状态：
 
@@ -84,6 +86,6 @@ dotnet build .\ExpansionaryEditor.csproj -c Release --no-restore `
 .\Install.ps1 -ProfileRoot 'D:\r2modman-data\TABS\profiles\Default'
 ```
 
-## 1.8.1 交付状态
+## 1.8.2 交付状态
 
 源码已构建并生成模组包。按本次要求，未运行测试、实际 r2modman 导入、界面预览或游戏验证。

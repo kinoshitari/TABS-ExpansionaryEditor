@@ -6,7 +6,7 @@
 
 1. 选择 TABS 和目标配置。
 2. 打开“设置”，选择“导入本地模组 / Import local mod”。
-3. 选择 **Local-ExpansionaryEditor-1.8.1.zip**，不要解压或改名。
+3. 选择 **Local-ExpansionaryEditor-1.8.2.zip**，不要解压或改名。
 4. 启动模组版游戏。
 
 若之前使用手工安装版，请使用原来的配置。包名仍为 Local-ExpansionaryEditor，插件 GUID 和数值目录不变。
@@ -58,7 +58,7 @@ F6 → 预设 → 管理 → 还原兵种排序，可确认恢复所有兵种的
 
 ## 更新边界
 
-1.8.1 已构建并打包，未进行测试、实际 r2modman 导入、界面预览或游戏验证。
+1.8.2 已构建并打包，未进行测试、实际 r2modman 导入、界面预览或游戏验证。
 
 包装依据：[Thunderstore 包格式](https://wiki.thunderstore.io/mods/creating-a-package)、[BepInEx 文件布局](https://wiki.thunderstore.io/mods/packaging-your-mods)。
 

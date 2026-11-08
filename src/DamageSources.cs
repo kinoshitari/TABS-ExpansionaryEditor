@@ -55,11 +55,20 @@ namespace ExpansionaryEditor
                     }
                     foreach(var method in type.GetMethods(BindingFlags.Public|BindingFlags.NonPublic|BindingFlags.Instance|BindingFlags.Static|BindingFlags.DeclaredOnly))
                     {
-                        if(method.IsAbstract||method.ContainsGenericParameters||method.GetMethodBody()==null)continue;
+                        if(method.IsAbstract||method.ContainsGenericParameters)continue;
                         if(owner.Name=="HealSelf"||owner.Name=="HealSelfS")continue;
                         bool callsDamage;
-                        try { callsDamage=PatchProcessor.GetOriginalInstructions(method).Any(i=>i.operand is MethodInfo m&&m.Name=="TakeDamage"&&(m.DeclaringType==typeof(Damagable)||m.DeclaringType==typeof(HealthHandler))); }
-                        catch(Exception ex){Logger.LogWarning("伤害来源未读取 "+type.FullName+"."+method.Name+": "+ex.Message);continue;}
+                        try
+                        {
+                            var implementation=method.GetMethodImplementationFlags();
+                            if((implementation&(MethodImplAttributes.CodeTypeMask|MethodImplAttributes.InternalCall))!=MethodImplAttributes.IL||
+                                (method.Attributes&MethodAttributes.PinvokeImpl)!=0)continue;
+                            // Merged mods can retain IL declarations with RVA=0. Mono throws
+                            // here instead of returning null; isolate them like unreadable IL.
+                            if(method.GetMethodBody()==null)continue;
+                            callsDamage=PatchProcessor.GetOriginalInstructions(method).Any(i=>i.operand is MethodInfo m&&m.Name=="TakeDamage"&&(m.DeclaringType==typeof(Damagable)||m.DeclaringType==typeof(HealthHandler)));
+                        }
+                        catch(Exception ex){Logger.LogWarning("伤害来源未读取 "+assembly.GetName().Name+" / "+type.FullName+"."+method.Name+": "+ex.Message);continue;}
                         if(!callsDamage)continue;
                         string key;
                         if(owner.Name=="Explosion"||owner.FullName=="TGCore.Library.ExplosionAddFewEffects"||owner.FullName=="myfpsmodd.boomreeew")key="Explosion";
