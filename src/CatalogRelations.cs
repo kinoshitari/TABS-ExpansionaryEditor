@@ -72,9 +72,14 @@ namespace ExpansionaryEditor
             foreach(var parent in entries)
             {
                 var refs=new HashSet<UnitBlueprint>();
+                var componentTypes=new HashSet<Type>();
                 if(parent.Blueprint.UnitRiders!=null)refs.UnionWith(parent.Blueprint.UnitRiders.Where(b=>b));
                 foreach(var root in new[]{parent.Base,parent.Right,parent.Left}.Concat(parent.Props??new GameObject[0]).Concat(parent.Children??new GameObject[0]))
-                    if(root)refs.UnionWith(reader.Read(root));
+                    if(root)
+                    {
+                        refs.UnionWith(reader.Read(root,out var types));componentTypes.UnionWith(types);
+                    }
+                EditorPlugin.RecordDamageSourceUnit(parent,componentTypes);
                 foreach(var bp in refs)if(bp&&byId.TryGetValue(bp.Entity.GUID,out var child)&&child!=parent)incoming[child].Add(parent);
             }
             foreach(var child in entries.Where(e=>e.IsDerived))
@@ -101,15 +106,19 @@ namespace ExpansionaryEditor
         sealed class PrefabReferences
         {
             readonly Dictionary<int,HashSet<UnitBlueprint>> cache=new Dictionary<int,HashSet<UnitBlueprint>>();
+            readonly Dictionary<int,HashSet<Type>> componentCache=new Dictionary<int,HashSet<Type>>();
             readonly Dictionary<Type,FieldInfo[]> fields=new Dictionary<Type,FieldInfo[]>();
-            public HashSet<UnitBlueprint> Read(GameObject root)
+            public HashSet<UnitBlueprint> Read(GameObject root,out HashSet<Type> components)
             {
+                int id=root.GetInstanceID();
+                if(!componentCache.TryGetValue(id,out components))componentCache[id]=components=new HashSet<Type>();
                 if(cache.TryGetValue(root.GetInstanceID(),out var saved))return saved;
                 var result=new HashSet<UnitBlueprint>();var visited=new HashSet<int>();var objects=new HashSet<object>();var queue=new Queue<GameObject>();queue.Enqueue(root);
                 while(queue.Count>0)
                 {
                     var go=queue.Dequeue();if(!go||!visited.Add(go.GetInstanceID()))continue;
-                    foreach(var c in go.GetComponentsInChildren<Component>(true).Where(c=>c&&!(c is Unit)&&!(c is Transform)))Scan(c,result,queue,objects);
+                    foreach(var c in go.GetComponentsInChildren<Component>(true).Where(c=>c&&!(c is Unit)&&!(c is Transform)))
+                    {components.Add(c.GetType());Scan(c,result,queue,objects);}
                 }
                 cache[root.GetInstanceID()]=result;return result;
             }

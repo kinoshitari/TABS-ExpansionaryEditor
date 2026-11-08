@@ -1,8 +1,8 @@
 {
   "name": "ExpansionaryEditor",
-  "version_number": "1.8.0",
+  "version_number": "1.8.1",
   "website_url": "https://github.com/kinoshitari/TABS-ExpansionaryEditor",
-  "description": "F6 七来源兵种编辑器。中文兵种与主兵种标注、分类承伤及冰冻抗性、分级增减、浅色/经典界面、批量与预设；扩展运行时软依赖，支持原版单独使用。",
+  "description": "F6 七来源兵种编辑器。中文兵种与主兵种标注、分类承伤、模组伤害注释及冰冻抗性、分级增减、浅色/经典界面、批量与预设；扩展运行时软依赖，支持原版单独使用。",
   "dependencies": [
     "BepInEx-BepInExPack_TABS-5.4.16",
     "Grad-HiddenUnits-2.0.9",

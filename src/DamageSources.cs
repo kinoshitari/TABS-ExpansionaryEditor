@@ -39,11 +39,19 @@ namespace ExpansionaryEditor
                     if(native&&!nativeTypes.Contains(owner.Name))continue;
                     if(type.ContainsGenericParameters)continue;
                     if(!native&&typeof(DamageOverTimeEffect).IsAssignableFrom(type)&&type!=typeof(DamageOverTimeEffect))
-                        EffectSources[type]=RegisterSourceResistance(assembly,owner);
+                    {
+                        var effectKey=RegisterSourceResistance(assembly,owner);EffectSources[type]=effectKey;
+                        var update=AccessTools.DeclaredMethod(typeof(DamageOverTimeEffect),"Update",Type.EmptyTypes);
+                        if(update!=null&&DamageMethods.ContainsKey(update))RecordDamageAnnotation(effectKey,owner,update);
+                    }
                     if(type==typeof(Effect_IceArrow)||type.FullName=="TGCore.Library.Effect_Frostbite"||type.FullName=="newice")
                     {
                         var add=AccessTools.DeclaredMethod(type,"Add",new[]{typeof(float)});
-                        if(add!=null)Harmony.Patch(add,prefix:new HarmonyMethod(typeof(EditorPlugin),nameof(ScaleFreeze)));
+                        if(add!=null)
+                        {
+                            Harmony.Patch(add,prefix:new HarmonyMethod(typeof(EditorPlugin),nameof(ScaleFreeze)));
+                            RecordDamageAnnotation("Freeze",type,add);
+                        }
                     }
                     foreach(var method in type.GetMethods(BindingFlags.Public|BindingFlags.NonPublic|BindingFlags.Instance|BindingFlags.Static|BindingFlags.DeclaredOnly))
                     {
@@ -62,6 +70,7 @@ namespace ExpansionaryEditor
                             Harmony.Patch(method,prefix:new HarmonyMethod(typeof(EditorPlugin),nameof(BeginDamageSource)){priority=Priority.First},
                                 finalizer:new HarmonyMethod(typeof(EditorPlugin),nameof(EndDamageSource)));
                             DamageMethods[method]=key;installed++;
+                            RecordDamageAnnotation(key,owner,method);
                         }
                         catch(Exception ex){Logger.LogWarning("伤害来源未接入 "+type.FullName+"."+method.Name+": "+ex.Message);}
                     }

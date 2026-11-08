@@ -6,7 +6,7 @@
 
 1. 选择 TABS 和目标配置。
 2. 打开“设置”，选择“导入本地模组 / Import local mod”。
-3. 选择 **Local-ExpansionaryEditor-1.8.0.zip**，不要解压或改名。
+3. 选择 **Local-ExpansionaryEditor-1.8.1.zip**，不要解压或改名。
 4. 启动模组版游戏。
 
 若之前使用手工安装版，请使用原来的配置。包名仍为 Local-ExpansionaryEditor，插件 GUID 和数值目录不变。
@@ -40,6 +40,8 @@
 
 模组来源按实际启用程序集的 `TakeDamage` 调用识别。绕过原版受伤入口、直接写生命或强制死亡的脚本不自动重写。内部模板和找不到主兵种引用的条目会明确标出。
 
+来源项下点 **注释**，查看来源模组、机制和已确认的预制体关联兵种；再展开 **调用入口** 查看组件和实际接入方法。默认收起，使用正常字号。负伤害治疗会单独说明，承伤倍率不缩放回血；停用来源保留原程序集与组件标识。
+
 新抗性保存到可选 `Resistances` 字典，原有数值与预设格式保持不变。不要用旧编辑器重新保存新抗性配置。
 
 详细机制和覆盖范围见同包的 [伤害类型](伤害类型.md)。
@@ -56,7 +58,7 @@ F6 → 预设 → 管理 → 还原兵种排序，可确认恢复所有兵种的
 
 ## 更新边界
 
-1.8.0 已构建并打包，未进行测试、实际 r2modman 导入、界面预览或游戏验证。
+1.8.1 已构建并打包，未进行测试、实际 r2modman 导入、界面预览或游戏验证。
 
 包装依据：[Thunderstore 包格式](https://wiki.thunderstore.io/mods/creating-a-package)、[BepInEx 文件布局](https://wiki.thunderstore.io/mods/packaging-your-mods)。
 

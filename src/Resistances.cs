@@ -56,7 +56,11 @@ namespace ExpansionaryEditor
                 int edits=group.Count(k=>ValueState(draft.Resistances,k)==FieldVisualState.Draft||ValueState(draft.Resistances,k)==FieldVisualState.Restore);
                 bool main=group.Key=="燃烧与爆炸"||group.Key=="冰冻控制";
                 if(!DrawFold("resistance/"+group.Key,group.Key,group.Count(),changed,edits,main||changed>0||edits>0,1))continue;
-                foreach(var key in group.OrderBy(ResistanceLabel))DrawValue(draft.Resistances,key,ResistanceLabel(key),"1",typeof(float));
+                foreach(var key in group.OrderBy(ResistanceLabel))
+                {
+                    DrawValue(draft.Resistances,key,ResistanceLabel(key),"1",typeof(float));
+                    DrawDamageAnnotation(key);
+                }
             }
             int modified=Settings.Units.TryGetValue(selected.Key,out var rule)?rule.Components.Keys.Count(k=>k.Contains("/DamageMultiplier[")):0;
             if(DrawFold("resistance/body","部位命中",0,modified,0,modified>0,1))
