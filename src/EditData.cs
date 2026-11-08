@@ -22,7 +22,8 @@ namespace ExpansionaryEditor
         public Dictionary<string, string> Stats = new Dictionary<string, string>();
         public Dictionary<string, string> Components = new Dictionary<string, string>();
         public Dictionary<string, string> Constants = new Dictionary<string, string>();
-        [JsonIgnore] public bool IsEmpty => Price == null && Stats.Count == 0 && Components.Count == 0 && Constants.Count == 0;
+        public Dictionary<string, string> Resistances = new Dictionary<string, string>();
+        [JsonIgnore] public bool IsEmpty => Price == null && Stats.Count == 0 && Components.Count == 0 && Constants.Count == 0 && Resistances.Count == 0;
     }
 
     public static class Numbers
@@ -104,8 +105,8 @@ namespace ExpansionaryEditor
         {
             if (value == null || value.FormatVersion != 1 || value.Units == null) throw new FormatException("不支持的设置格式");
             foreach (var pair in value.Units)
-                if (pair.Value == null || pair.Value.Stats == null || pair.Value.Components == null || pair.Value.Constants == null ||
-                    (strict && (string.IsNullOrEmpty(pair.Key) || pair.Value.Stats.Values.Any(v => v == null) || pair.Value.Components.Values.Any(v => v == null) || pair.Value.Constants.Values.Any(v => v == null))))
+                if (pair.Value == null || pair.Value.Stats == null || pair.Value.Components == null || pair.Value.Constants == null || pair.Value.Resistances == null ||
+                    (strict && (string.IsNullOrEmpty(pair.Key) || pair.Value.Stats.Values.Any(v => v == null) || pair.Value.Components.Values.Any(v => v == null) || pair.Value.Constants.Values.Any(v => v == null) || pair.Value.Resistances.Values.Any(v => v == null))))
                     throw new FormatException("兵种标识和参数不能为空");
         }
         public static Settings ReadSettings(string text, bool requireEnvelope = true)
@@ -134,6 +135,7 @@ namespace ExpansionaryEditor
             AddChanges(result, "基础", before.Stats, after.Stats);
             AddChanges(result, "参数", before.Components, after.Components);
             AddChanges(result, "技能", before.Constants, after.Constants);
+            AddChanges(result, "抗性", before.Resistances, after.Resistances);
             return result;
         }
         static void AddChanges(List<RuleChange> result, string group, Dictionary<string,string> a, Dictionary<string,string> b)

@@ -3,7 +3,7 @@
     <TargetFramework>net472</TargetFramework>
     <LangVersion>latest</LangVersion>
     <AssemblyName>ExpansionaryEditor</AssemblyName>
-    <Version>1.7.0</Version>
+    <Version>1.8.0</Version>
     <GameDir>G:\SteamLibrary\steamapps\common\Totally Accurate Battle Simulator\TotallyAccurateBattleSimulator_Data\Managed</GameDir>
     <CoreDir>D:\r2modman-data\TABS\profiles\Default\BepInEx\core</CoreDir>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>

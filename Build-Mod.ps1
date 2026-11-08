@@ -14,6 +14,7 @@ New-Item -ItemType Directory -Path (Join-Path $stage 'BepInEx\plugins') -Force|O
 New-Item -ItemType Directory -Path (Split-Path -Parent $output) -Force|Out-Null
 Copy-Item -LiteralPath (Join-Path $root 'bin\Release\net472\ExpansionaryEditor.dll') -Destination (Join-Path $stage 'BepInEx\plugins\ExpansionaryEditor.dll')
 foreach($name in @('manifest.json','README.md','CHANGELOG.md')){Copy-Item -LiteralPath (Join-Path $root ('package\'+$name)) -Destination $stage}
+Copy-Item -LiteralPath (Join-Path $root '伤害类型.md') -Destination $stage
 
 # A self-contained 256px icon; no external image, brand mark or network request.
 Add-Type -AssemblyName System.Drawing

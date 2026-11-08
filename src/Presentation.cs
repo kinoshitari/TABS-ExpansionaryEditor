@@ -160,6 +160,16 @@ namespace ExpansionaryEditor
             componentType!=null&&ComponentFields.TryGetValue(componentType.FullName+"/"+name,out var label)?label:
             name.Any(c=>c>='\u4e00'&&c<='\u9fff')?name:ExtraFields.TryGetValue(name,out var text)?text:Field(name);
         static readonly Dictionary<string,string> ComponentFields=new Dictionary<string,string> {
+            {"DamageMultiplier/multiplier","部位命中倍率"},
+            {"Armor/projectileHitForceMultiplier","弹丸冲击倍率"},
+            {"HiddenUnits.DamageResistance/resistPercentage","受伤返还比例"},
+            {"TGCore.Library.AchillesArmor/armorHealth","护甲耐久"},
+            {"TGCore.Library.AchillesArmor/maxDamageToBlock","可格挡伤害上限"},
+            {"TGCore.Library.AchillesArmor/blockPower","格挡强度"},
+            {"TGCore.Library.AchillesArmor/parryPower","招架强度"},
+            {"TGCore.Library.AchillesArmor/armorDisabledTime","护甲失效时间（秒）"},
+            {"TGCore.Library.AchillesArmor/healthRegenerate","护甲自动恢复"},
+            {"TGCore.Library.AchillesArmor/healthRegenerationRate","护甲恢复速度"},
             {"MonkeyArmor/armorhealth","护甲强度"},{"MonkeyKingArmor/armorhealth","护甲强度"},
             {"WeaponScaleChange/cooldownTime","伸缩冷却（秒）"},
             {"SuperStick/rotationSpeed","旋转速度（度/秒）"},{"SuperStick/growthSpeed","推进速度"}

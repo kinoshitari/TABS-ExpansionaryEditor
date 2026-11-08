@@ -44,9 +44,11 @@ namespace ExpansionaryEditor
                 decimal next=number+direction*amount;
                 decimal minimum=type==typeof(uint)?0:decimal.MinValue;
                 if(key=="price")minimum=0;
+                if(IsResistanceKey(key))minimum=0;
                 var stat=Labels.Stats.FirstOrDefault(d=>d.Field==key);
                 if(stat!=null)minimum=(decimal)stat.Min;
                 var slot=selected?.Slots?.FirstOrDefault(s=>s.Key==key);
+                if(slot?.ComponentType==typeof(DamageMultiplier))minimum=0;
                 if(slot!=null&&slot.Label.Contains("冷却"))minimum=0;
                 if(slot?.FieldName=="magSize")minimum=1;
                 if(key.EndsWith("/@count")){minimum=0;next=Math.Min(next,128);}

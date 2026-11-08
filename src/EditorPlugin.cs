@@ -13,7 +13,7 @@ using UnityEngine;
 
 namespace ExpansionaryEditor
 {
-    [BepInPlugin("local.tabs.expansionaryeditor", "TABS 兵种数值编辑器", "1.7.0")]
+    [BepInPlugin("local.tabs.expansionaryeditor", "TABS 兵种数值编辑器", "1.8.0")]
     [BepInDependency("org.bepinex.plugins.SLMAcore", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("GeeztJeez.Expansionary", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("chouchou", BepInDependency.DependencyFlags.SoftDependency)]
@@ -52,6 +52,9 @@ namespace ExpansionaryEditor
             Harmony=new Harmony("local.tabs.expansionaryeditor");
             MenuOrder=new NativeMenuOrder(this,message=>{error=message;Logger.LogError(message);},message=>Logger.LogInfo(message));
             MenuOrder.Install(Harmony);
+            InstallResistances();
+            Harmony.Patch(AccessTools.Method(typeof(Localizer),"GetSinglePhrase",new[]{typeof(string),typeof(string[])}),
+                postfix:new HarmonyMethod(typeof(EditorPlugin),nameof(TranslateCatalogPhrase)));
             PatchDerivedTranslations();
             InitializeSources();
             Harmony.Patch(AccessTools.Method(typeof(UnitBlueprint),"GetUnitCost",new[]{typeof(bool)}),
@@ -71,7 +74,7 @@ namespace ExpansionaryEditor
         }
         static bool DerivedTranslation(string __0,ref string __result)
         {
-            if(!Labels.DerivedNames.TryGetValue(__0??"",out var text)&&!Labels.ModuleNames.TryGetValue(__0??"",out text))return true;
+            if(!Labels.KnownUnitTranslation(__0,out var text))return true;
             __result=text;return false;
         }
         static IEnumerable<UnitBlueprint> DatabaseBlueprints(DM.LandfallContentDatabase database)
@@ -172,12 +175,14 @@ namespace ExpansionaryEditor
             double min=rule.Stats.TryGetValue("minSizeRandom",out var lo)?(double)Numbers.Parse(lo,typeof(double)):Convert.ToDouble(entry.OriginalStats["minSizeRandom"]);
             double max=rule.Stats.TryGetValue("maxSizeRandom",out var hi)?(double)Numbers.Parse(hi,typeof(double)):Convert.ToDouble(entry.OriginalStats["maxSizeRandom"]);
             if(min>max)throw new FormatException("随机体型下限不能大于上限");
+            ValidateResistances(rule);
             if(rule.Components.Count>0 || rule.Constants.Count>0)EnsureGraph(entry);
             foreach(var pair in rule.Components)
             {
                 var slot=entry.Slots.FirstOrDefault(s=>s.Key==pair.Key);
                 if(slot==null)throw new FormatException("参数路径已失效："+pair.Key);
                 var value=Numbers.Parse(pair.Value,slot.Type);
+                if(slot.ComponentType==typeof(DamageMultiplier)&&Convert.ToDouble(value)<0)throw new FormatException("承伤倍率不能为负数");
                 if(slot.Type!=typeof(bool)&&slot.Label.Contains("冷却")&&Convert.ToDouble(value)<0)throw new FormatException(slot.Label+"不能为负数");
                 if(slot.FieldName=="magSize" && Convert.ToInt32(value)<1)throw new FormatException("弹匣容量至少为 1");
                 if(slot.Key.EndsWith("/@count") && (Convert.ToInt32(value)<0 || Convert.ToInt32(value)>128))throw new FormatException("召唤数量需要在 0–128 之间");
@@ -210,7 +215,7 @@ namespace ExpansionaryEditor
             {
                 // Preserve the old settings reader's defaults; strict envelopes are required only for new imports.
                 var loaded=EditData.ReadSettings(File.ReadAllText(SettingsPath),false);
-                Settings=loaded;fileError=false;
+                Settings=loaded;RefreshResistanceRouting();fileError=false;
             }
             catch(Exception e){fileError=true;Logger.LogError("设置未加载，原文件保留："+e.Message);}
         }
@@ -233,7 +238,7 @@ namespace ExpansionaryEditor
         public void ExportCatalog(bool full)
         {
             if(full && selected!=null)EnsureGraph(selected);
-            var data=Entries.Select(e=>new {e.Key,e.Name,e.AssetName,e.Module,e.Source,e.Faction,Price=e.OriginalPrice,Stats=e.OriginalStats,
+            var data=Entries.Select(e=>new {e.Key,e.Name,e.AssetName,e.Module,e.Source,e.Faction,DisplayName=Labels.UnitName(e),e.ParentText,Parents=e.Parents.Select(p=>p.Key),Price=e.OriginalPrice,Stats=e.OriginalStats,
                 Components=e.Slots?.Select(s=>new {s.Key,s.Group,s.Label,s.Path,s.ComponentName,s.FieldName,s.Original}),
                 Constants=e.Constants?.Select(s=>new {s.Key,s.Group,s.Label,s.Original})});
             File.WriteAllText(Path.Combine(DataDirectory,"兵种原始数据.json"),JsonConvert.SerializeObject(data,Formatting.Indented));

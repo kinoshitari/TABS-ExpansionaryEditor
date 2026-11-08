@@ -42,8 +42,9 @@ $target=Join-Path $destination 'ExpansionaryEditor.dll'
 if(Test-Path -LiteralPath $target){Copy-Item -LiteralPath $target -Destination ($target+'.bak')}
 Copy-Item -LiteralPath $source -Destination $target -Force
 if($metadataRoot){
-    foreach($name in @('manifest.json','README.md','CHANGELOG.md','icon.png')){
+    foreach($name in @('manifest.json','README.md','CHANGELOG.md','icon.png','伤害类型.md')){
         $file=Join-Path $metadataRoot $name
+        if($name -eq '伤害类型.md' -and !(Test-Path -LiteralPath $file)){$file=Join-Path $PSScriptRoot $name}
         if(!(Test-Path -LiteralPath $file)){continue}
         $installed=Join-Path $destination $name
         if(Test-Path -LiteralPath $installed){Copy-Item -LiteralPath $installed -Destination ($installed+'.bak') -Force}

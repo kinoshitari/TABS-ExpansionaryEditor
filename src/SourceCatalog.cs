@@ -180,6 +180,8 @@ namespace ExpansionaryEditor
                     foreach(var stat in Labels.Stats)entry.OriginalStats[stat.Field]=AccessTools.Field(typeof(UnitBlueprint),stat.Field).GetValue(bp);
                     Entries.Add(entry);ByKey.Add(key,entry);catalogKeys[bp.GetInstanceID()]=key;runtimeIds[bp.Entity.GUID]=key;
                 }
+                InitializeDamageSources();
+                CatalogRelations.Build(Entries);
                 Entries.Sort((a,b)=>{int x=string.Compare(a.Module,b.Module,StringComparison.Ordinal);if(x==0)x=string.Compare(a.Faction,b.Faction,StringComparison.Ordinal);return x==0?a.OriginalPrice.CompareTo(b.OriginalPrice):x;});
                 foreach(var entry in Entries)if(Settings.Enabled&&Settings.Units.TryGetValue(entry.Key,out var rule)){Validate(entry,rule);Apply(entry,rule);}
                 Ready=true;

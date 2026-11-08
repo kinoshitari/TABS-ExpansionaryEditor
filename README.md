@@ -1,10 +1,10 @@
 # TABS 数值编辑器
 
-TABS 游戏内兵种数值编辑器，当前版本 **1.7.0**。按 **F6** 打开或关闭。
+TABS 游戏内兵种数值编辑器，当前版本 **1.8.0**。按 **F6** 打开或关闭。
 
 ## 安装与更新
 
-从 [v1.7.0 Release](https://github.com/kinoshitari/TABS-ExpansionaryEditor/releases/tag/v1.7.0) 下载 `Local-ExpansionaryEditor-1.7.0.zip`。
+从 [v1.8.0 Release](https://github.com/kinoshitari/TABS-ExpansionaryEditor/releases/tag/v1.8.0) 下载 `Local-ExpansionaryEditor-1.8.0.zip`。
 
 在 r2modman 选择 TABS 和目标配置，打开 **设置 → Import local mod（导入本地模组）**，选择 ZIP，无需解压。使用原配置更新，原数值与预设继续保留。
 
@@ -14,6 +14,8 @@ TABS 游戏内兵种数值编辑器，当前版本 **1.7.0**。按 **F6** 打开
 
 - 编辑原版、HiddenUnits、臭臭、Expansionary、圣诞节（Holiday 2.2.1）、动物王国（AnimalKingdom 1.0.4）、中国神话（Chinese_myth 0.2.1）。
 - 属性、左右手武器、弹丸及可识别技能字段。
+- 隐藏、臭臭、圣诞节及动物王国兵种补充中文名称；衍生兵种显示主兵种，支持按主兵种搜索。
+- 属性页新增伤害抗性：四类原生伤害、燃烧／持续伤害、爆炸、冰冻积累、模组实际扣血来源与原生部位系数。
 - 数值框 `<< / < / > / >>` 分级增减：单箭头 1%，双箭头 10%，整数至少变化 1。
 - 乘算、设值、增减的批量预览与应用。
 - 打开“更多派系”后拖动派系内兵种排序，显示插入线并支持边缘滚动；顶部派系标签沿用游戏原生拖拽。拖后就地更新现有按钮，保留当前页和选中兵种。
@@ -40,6 +42,8 @@ TABS 游戏内兵种数值编辑器，当前版本 **1.7.0**。按 **F6** 打开
 只编辑原版时，保留 BepInEx 与编辑器即可。若不希望管理器按前置列表安装扩展，可将 ZIP 内的 `BepInEx/plugins/ExpansionaryEditor.dll` 放入当前配置的 `BepInEx/plugins/Local-ExpansionaryEditor`，或使用下方手工安装脚本。不要另留一份同 GUID 的编辑器。
 
 声明的管理器前置会参与安装依赖解析；插件能否独立加载由软依赖决定。见 [Thunderstore 包格式](https://wiki.thunderstore.io/mods/creating-a-package) 与 [BepInEx 依赖说明](https://docs.bepinex.dev/articles/dev_guide/plugin_tutorial/2_plugin_start.html#specifying-dependencies-on-other-plugins)。
+
+伤害机制和覆盖范围见 [伤害类型](伤害类型.md)。
 
 ## 配置与预设
 
@@ -71,7 +75,7 @@ dotnet build .\ExpansionaryEditor.csproj -c Release --no-restore `
 .\Build-Mod.ps1 -SkipBuild
 ```
 
-输出位于 `dist/Local-ExpansionaryEditor-1.7.0.zip`。打包脚本不会覆盖同版本的已有输出；重打包前先移走 `dist` 中的同名 ZIP 与 `build/mod-1.7.0`。
+输出位于 `dist/Local-ExpansionaryEditor-1.8.0.zip`。打包脚本不会覆盖同版本的已有输出；重打包前先移走 `dist` 中的同名 ZIP 与 `build/mod-1.8.0`。
 
 也可退出游戏后手工安装构建的 DLL。已有 r2modman 登记时，脚本同步本编辑器的版本与前置清单；不修改其他模组的启停状态：
 
@@ -79,6 +83,6 @@ dotnet build .\ExpansionaryEditor.csproj -c Release --no-restore `
 .\Install.ps1 -ProfileRoot 'D:\r2modman-data\TABS\profiles\Default'
 ```
 
-## 1.7.0 交付状态
+## 1.8.0 交付状态
 
 源码已构建并生成模组包。按本次要求，未运行测试、实际 r2modman 导入、界面预览或游戏验证。

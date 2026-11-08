@@ -19,6 +19,9 @@ namespace ExpansionaryEditor
         public List<ValueSlot> Slots;
         public List<ConstantSlot> Constants;
         public List<AbilityInfo> Abilities;
+        public readonly List<UnitEntry> Parents = new List<UnitEntry>();
+        public bool IsDerived => Faction=="FACTION_SUBUNITS"||Faction=="附加／召唤兵种"||Name?.StartsWith("UNIT_SUBUNITS_")==true;
+        public string ParentText;
     }
 
     public sealed class StatDef
@@ -116,7 +119,8 @@ namespace ExpansionaryEditor
             if(DerivedNames.TryGetValue(text??"",out var translated))return translated;
             if(ModuleNames.TryGetValue(text,out translated))return translated;
             var gameLanguage=HarmonyLib.AccessTools.Field(typeof(Localizer),"m_currentLanguage").GetValue(null) as Dictionary<string,string>;
-            if(gameLanguage!=null&&gameLanguage.TryGetValue(text,out var phrase))return phrase;
+            if(gameLanguage!=null&&gameLanguage.TryGetValue(text,out var phrase)&&HasChinese(phrase))return phrase;
+            if(UnitTranslations.TryGetValue(text,out translated))return translated;
             if(!translationInitialized)
             {
                 translationInitialized=true;

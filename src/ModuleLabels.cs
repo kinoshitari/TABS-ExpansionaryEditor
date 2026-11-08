@@ -25,9 +25,14 @@ namespace ExpansionaryEditor
         };
         public static string UnitName(UnitEntry entry)
         {
-            if(!string.IsNullOrEmpty(entry.Name))return Localize(entry.Name);
             var asset=Localize(entry.AssetName??"");
-            if(asset.Any(c=>c>='\u4e00'&&c<='\u9fff'))return asset;
+            // Several hidden riders reuse their mount's localization key. Their
+            // precise prefab alias distinguishes the rider/body from the vehicle.
+            if(entry.IsDerived&&HasChinese(asset))return asset;
+            var title=Localize(entry.Name??"");
+            if(HasChinese(title))return title;
+            if(HasChinese(asset))return asset;
+            if(!string.IsNullOrEmpty(title))return title;
             return SourceCatalogName(entry.Module)+"附属单位（"+entry.Blueprint.Entity.GUID.m_ID+"）";
         }
         static string SourceCatalogName(string module)=>EditorPlugin.SourceName(module);

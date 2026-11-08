@@ -23,11 +23,11 @@ namespace ExpansionaryEditor
             var old=GUI.contentColor;GUI.contentColor=StateColor(state);
             GUI.Label(rect,text??EditPresentation.StateLabel(state),stateBadgeStyle);GUI.contentColor=old;
         }
-        static int OverrideCount(UnitRule rule) => rule==null?0:(rule.Price.HasValue?1:0)+rule.Stats.Count+rule.Components.Count+rule.Constants.Count;
+        static int OverrideCount(UnitRule rule) => rule==null?0:(rule.Price.HasValue?1:0)+rule.Stats.Count+rule.Components.Count+rule.Constants.Count+rule.Resistances.Count;
         Dictionary<string,string> SavedValues(Dictionary<string,string> values)
         {
             if(selected==null||!Settings.Units.TryGetValue(selected.Key,out var saved))return null;
-            return ReferenceEquals(values,draft.Stats)?saved.Stats:ReferenceEquals(values,draft.Components)?saved.Components:saved.Constants;
+            return ReferenceEquals(values,draft.Stats)?saved.Stats:ReferenceEquals(values,draft.Components)?saved.Components:ReferenceEquals(values,draft.Resistances)?saved.Resistances:saved.Constants;
         }
         FieldVisualState ValueState(Dictionary<string,string> values,string key)
         {

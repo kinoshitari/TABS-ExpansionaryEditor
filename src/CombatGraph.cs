@@ -27,6 +27,9 @@ namespace ExpansionaryEditor
         string abilityKey;
 
         static readonly Dictionary<string, HashSet<string>> Allowed = new Dictionary<string, HashSet<string>> {
+            {"DamageMultiplier",Set("multiplier")},
+            {"Armor",Set("projectileHitForceMultiplier")},
+            {"AchillesArmor",Set("armorHealth,maxDamageToBlock,blockPower,parryPower,armorDisabledTime,healthRegenerate,healthRegenerationRate")},
             {"Weapon", Set("internalCooldown,maxRange,maxAngle,startOnCooldown,randomCooldown,defaultDrag,defaultAngularDrag")},
             {"RangeWeapon", Set("objectToSpawn,unitToSpawn,magSize,reloadTime,numberOfObjects,spawnDelay,useSpawnDelayForEveryShot,delayPerSpawn,useRandomDelay,minRandom,maxRandom,spread,projectileSpeedSpread,force,clampRange,shootRecoil,torsoRecoil,extraSpreadInMelee,extraCDInMelee,fallTime")},
             {"MeleeWeapon", Set("curveForce,yTargetOffset,canDealDamageOutSideOfSwing,requiredPowerToParry")},

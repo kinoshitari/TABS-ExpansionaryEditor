@@ -44,7 +44,7 @@ namespace ExpansionaryEditor
                         throw new FormatException("当前未加载兵种，无法应用：" + key);
                 foreach (var entry in affected) { value.Units.TryGetValue(entry.Key, out var rule); Validate(entry, rule); }
             }, value => {
-                Settings = value;
+                Settings = value;RefreshResistanceRouting();
                 var failures=new List<Exception>();
                 foreach (var entry in affected)
                 {
@@ -64,6 +64,7 @@ namespace ExpansionaryEditor
             foreach (var key in result.Stats.Keys.ToArray()) result.Stats[key] = Numbers.Text(Numbers.Parse(result.Stats[key], AccessTools.Field(typeof(UnitBlueprint), key).FieldType));
             foreach (var key in result.Components.Keys.ToArray()) result.Components[key] = Numbers.Text(Numbers.Parse(result.Components[key], entry.Slots.First(s => s.Key == key).Type));
             foreach (var key in result.Constants.Keys.ToArray()) result.Constants[key] = Numbers.Text(Numbers.Parse(result.Constants[key], entry.Constants.First(s => s.Key == key).Double ? typeof(double) : typeof(float)));
+            foreach (var key in result.Resistances.Keys.ToArray()) result.Resistances[key] = Numbers.Text(Numbers.Parse(result.Resistances[key],typeof(float)));
             return result;
         }
         void SaveDraft()

@@ -11,12 +11,14 @@ namespace ExpansionaryEditor
         string ChangeLabel(RuleChange change)
         {
             if(change.Key=="price")return "价格";
+            if(change.Group=="抗性")return ResistanceLabel(change.Key);
             if(change.Group=="基础")return Labels.Stats.FirstOrDefault(d=>d.Field==change.Key)?.Label??change.Key;
             return selected?.Slots?.FirstOrDefault(s=>s.Key==change.Key)?.Label??selected?.Constants?.FirstOrDefault(s=>s.Key==change.Key)?.Label??"旧版参数 · "+change.Key;
         }
         string Baseline(RuleChange change)
         {
             if(change.Key=="price")return selected.OriginalPrice.ToString();
+            if(change.Group=="抗性")return "1";
             if(change.Group=="基础"&&selected.OriginalStats.ContainsKey(change.Key))return Numbers.Text(EffectiveStat(selected,change.Key));
             return selected.Slots?.FirstOrDefault(s=>s.Key==change.Key)?.Original??selected.Constants?.FirstOrDefault(s=>s.Key==change.Key)?.Original??"加载时基准";
         }

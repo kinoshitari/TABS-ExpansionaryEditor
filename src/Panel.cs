@@ -154,7 +154,7 @@ namespace ExpansionaryEditor
             checkStyle=Style(20,accent,TextAnchor.MiddleCenter);checkStyle.border=ThemeBorder();checkStyle.padding=new RectOffset();
             checkStyle.normal.background=controlTexture;checkStyle.hover.background=hoverTexture;
             foreach(var state in new[]{checkStyle.onNormal,checkStyle.onHover,checkStyle.onActive,checkStyle.onFocused}){state.background=selectedTexture;state.textColor=accent;}
-            listStyle=Style(20,text);listStyle.padding=new RectOffset(7,7,2,2);listStyle.border=ThemeBorder();listStyle.hover.background=hoverTexture;
+            listStyle=Style(20,text);listStyle.wordWrap=true;listStyle.padding=new RectOffset(7,7,2,2);listStyle.border=ThemeBorder();listStyle.hover.background=hoverTexture;
             selectedListStyle=new GUIStyle(listStyle);selectedListStyle.normal.textColor=StateColor(FieldVisualState.Saved);selectedListStyle.fontStyle=FontStyle.Bold;
             groupStyle=Style(20,secondary);groupStyle.padding=new RectOffset(6,6,4,4);
             stateBadgeStyle=Style(20,accent,TextAnchor.MiddleCenter);
@@ -197,7 +197,7 @@ namespace ExpansionaryEditor
                 if(Ready)DrawModules(new Rect(x+padding,y+88,width-padding*2,44));
                 if(Ready)
                 {
-                    if(!hideNavigation){GUI.Box(left,GUIContent.none,sidebarStyle);GUILayout.BeginArea(new Rect(left.x+10,left.y+10,left.width-20,left.height-20));DrawUnits(left.height-20);GUILayout.EndArea();}
+                    if(!hideNavigation){GUI.Box(left,GUIContent.none,sidebarStyle);GUILayout.BeginArea(new Rect(left.x+10,left.y+10,left.width-20,left.height-20));DrawUnits(left.height-20,left.width-20);GUILayout.EndArea();}
                     GUILayout.BeginArea(right);DrawDetails(right.height,right.width);GUILayout.EndArea();
                     GUILayout.BeginArea(actions);DrawActions();GUILayout.EndArea();
                 }
@@ -234,6 +234,8 @@ namespace ExpansionaryEditor
             Settings.Units.TryGetValue(selected?.Key??"",out var currentRule);
             string state=fieldErrors.Count>0?"待修正":dirty?"未保存":OverrideCount(currentRule)>0?"已修改":"";
             GUILayout.Label(state,subStyle,GUILayout.Width(100),GUILayout.Height(44));GUILayout.EndHorizontal();
+            float parentHeight=selected!=null&&!string.IsNullOrEmpty(selected.ParentText)?Mathf.Max(36,labelStyle.CalcHeight(new GUIContent(selected.ParentText),width)):0;
+            if(parentHeight>0)GUILayout.Label(selected.ParentText,labelStyle,GUILayout.Height(parentHeight));
             GUILayout.Space(12);int next=GUILayout.Toolbar(tab,tabs,buttonStyle,GUILayout.Height(42));
             if(next!=tab){tab=next;valuesScroll=Vector2.zero;paramSearch="";if(tab>=1&&tab<=3)LoadSelectedGraph();if(tab==6)Guard(RefreshLibrary);}
             GUILayout.Space(18);bool filtered=tab>=1&&tab<=3;
@@ -244,7 +246,7 @@ namespace ExpansionaryEditor
                 GUILayout.Space(12);
             }
             if(tab<=3)DrawColumns();parameterFolds.SetQuery(paramSearch);rowLabelWidth=Mathf.Max(120,width-574);
-            valuesScroll=GUILayout.BeginScrollView(valuesScroll,false,true,GUILayout.Height(Mathf.Max(100,height-128-(filtered?52:0)-(tab<=3?34:0))));
+            valuesScroll=GUILayout.BeginScrollView(valuesScroll,false,true,GUILayout.Height(Mathf.Max(100,height-128-parentHeight-(filtered?52:0)-(tab<=3?34:0))));
             if(tab==6)DrawLibrary();else if(selected==null)GUILayout.Label("未安装",sectionStyle);
             else if(tab==0)DrawStats();else if(tab==4)DrawBatch();else if(tab==5)DrawSummary();else if(tab==3)DrawAbilities();else DrawComponents();
             GUILayout.EndScrollView();
@@ -273,6 +275,7 @@ namespace ExpansionaryEditor
             bool on=draft.Price.HasValue,was=on;string value=priceInput??draft.Price?.ToString()??selected.OriginalPrice.ToString(),old=value;
             DrawFieldRow("price",ref on,ref value,"价格",selected.OriginalPrice.ToString(),typeof(int),"恢复基准会取消此项覆盖；保存后生效",savedRule?.Price.HasValue==true,savedRule?.Price?.ToString());
             if(on!=was||value!=old){draft.Price=on?(draft.Price??(int)selected.OriginalPrice):(int?)null;priceInput=on?value:null;RecheckDirty();}
+            DrawResistances();
             foreach(var group in Labels.Stats.GroupBy(d=>EditPresentation.BasicCategory(d.Field)))
             {
                 int modified=group.Count(d=>savedRule?.Stats.ContainsKey(d.Field)==true);
@@ -328,9 +331,11 @@ namespace ExpansionaryEditor
             if(type==typeof(bool))return "";
             double number=Convert.ToDouble(Numbers.Parse(value,type));
             if(key=="price")return number<0?"价格不能为负数":"";
+            if(IsResistanceKey(key)&&number<0)return "承伤倍率不能为负数";
             var def=Labels.Stats.FirstOrDefault(d=>d.Field==key);
             if(def!=null)return number<def.Min?def.Label+"不能小于 "+def.Min:"";
             var slot=selected?.Slots?.FirstOrDefault(v=>v.Key==key);
+            if(slot?.ComponentType==typeof(DamageMultiplier)&&number<0)return "承伤倍率不能为负数";
             if(slot!=null&&slot.Label.Contains("冷却")&&number<0)return "冷却不能为负数";
             if(slot!=null&&slot.FieldName=="magSize"&&number<1)return "弹匣容量至少为 1";
             if(key.EndsWith("/@count")&&(number<0||number>128))return "召唤数量需在 0–128 之间";
