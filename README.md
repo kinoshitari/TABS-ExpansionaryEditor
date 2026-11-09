@@ -1,12 +1,12 @@
 # TABS 数值编辑器
 
-TABS 游戏内兵种数值编辑器，当前版本 **1.8.2**。按 **F6** 打开或关闭。
+TABS 游戏内兵种数值编辑器，当前版本 **1.9.0**。按 **F6** 打开或关闭。
 
-此版本修复扫描臭臭模组无方法体成员时导致的“加载失败”，保留伤害来源注释及原有编辑功能。
+承伤设置独立为“承伤”选项卡；主兵种与伤害来源等备注统一使用中文括号，和名称、参数分开显示。
 
 ## 安装与更新
 
-从 [v1.8.2 Release](https://github.com/kinoshitari/TABS-ExpansionaryEditor/releases/tag/v1.8.2) 下载 `Local-ExpansionaryEditor-1.8.2.zip`。
+从 [v1.9.0 Release](https://github.com/kinoshitari/TABS-ExpansionaryEditor/releases/tag/v1.9.0) 下载 `Local-ExpansionaryEditor-1.9.0.zip`。
 
 在 r2modman 选择 TABS 和目标配置，打开 **设置 → Import local mod（导入本地模组）**，选择 ZIP，无需解压。使用原配置更新，原数值与预设继续保留。
 
@@ -15,10 +15,10 @@ TABS 游戏内兵种数值编辑器，当前版本 **1.8.2**。按 **F6** 打开
 ## 功能
 
 - 编辑原版、HiddenUnits、臭臭、Expansionary、圣诞节（Holiday 2.2.1）、动物王国（AnimalKingdom 1.0.4）、中国神话（Chinese_myth 0.2.1）。
-- 属性、左右手武器、弹丸及可识别技能字段。
+- 属性、独立承伤页、左右手武器、弹丸及可识别技能字段。
 - 隐藏、臭臭、圣诞节及动物王国兵种补充中文名称；衍生兵种显示主兵种，支持按主兵种搜索。
-- 属性页新增伤害抗性：四类原生伤害、燃烧／持续伤害、爆炸、冰冻积累、模组实际扣血来源与原生部位系数。
-- 来源项下的“注释”默认收起，展开查看模组、机制和已确认的预制体关联兵种；“调用入口”列出实际接入的组件与方法。
+- 承伤页集中四类原生伤害、燃烧／持续伤害、爆炸、冰冻积累、模组实际扣血来源、部位系数及护甲与冲击。
+- 来源项下的“注释”默认收起，展开查看模组、机制和已确认的预制体关联兵种；备注以“（…）”显示，“调用入口”列出实际接入的组件与方法。
 - 数值框 `<< / < / > / >>` 分级增减：单箭头 1%，双箭头 10%，整数至少变化 1。
 - 乘算、设值、增减的批量预览与应用。
 - 打开“更多派系”后拖动派系内兵种排序，显示插入线并支持边缘滚动；顶部派系标签沿用游戏原生拖拽。拖后就地更新现有按钮，保留当前页和选中兵种。
@@ -78,7 +78,7 @@ dotnet build .\ExpansionaryEditor.csproj -c Release --no-restore `
 .\Build-Mod.ps1 -SkipBuild
 ```
 
-输出位于 `dist/Local-ExpansionaryEditor-1.8.2.zip`。打包脚本不会覆盖同版本的已有输出；重打包前先移走 `dist` 中的同名 ZIP 与 `build/mod-1.8.2`。
+输出位于 `dist/Local-ExpansionaryEditor-1.9.0.zip`。打包脚本不会覆盖同版本的已有输出；重打包前先移走 `dist` 中的同名 ZIP 与 `build/mod-1.9.0`。
 
 也可退出游戏后手工安装构建的 DLL。已有 r2modman 登记时，脚本同步本编辑器的版本与前置清单；不修改其他模组的启停状态：
 
@@ -86,6 +86,6 @@ dotnet build .\ExpansionaryEditor.csproj -c Release --no-restore `
 .\Install.ps1 -ProfileRoot 'D:\r2modman-data\TABS\profiles\Default'
 ```
 
-## 1.8.2 交付状态
+## 1.9.0 交付状态
 
 源码已构建并生成模组包。按本次要求，未运行测试、实际 r2modman 导入、界面预览或游戏验证。

@@ -54,7 +54,8 @@ namespace ExpansionaryEditor
                     bool modified=OverrideCount(rule)>0||selected==entry&&dirty;
                     var nameStyle=modified?selectedListStyle:listStyle;
                     float nameHeight=Mathf.Max(40,nameStyle.CalcHeight(new GUIContent(Labels.UnitName(entry)),Mathf.Max(60,width-101)));
-                    float parentHeight=string.IsNullOrEmpty(entry.ParentText)?0:Mathf.Max(30,labelStyle.CalcHeight(new GUIContent(entry.ParentText),Mathf.Max(80,width-43)))+6;
+                    string parentRemark=RemarkText(entry.ParentText);
+                    float parentHeight=parentRemark.Length==0?0:Mathf.Max(30,smallStyle.CalcHeight(new GUIContent(parentRemark),Mathf.Max(80,width-43)))+6;
                     var rect=GUILayoutUtility.GetRect(1,nameHeight+parentHeight,GUILayout.ExpandWidth(true));
                     if(selected==entry)GUI.Box(rect,GUIContent.none,activeStyle);
                     bool old=batch.Contains(entry.Key),next=GUI.Toggle(new Rect(rect.x+5,rect.y+7,26,26),old,old?"✓":"",checkStyle);
@@ -62,7 +63,7 @@ namespace ExpansionaryEditor
                     if(GUI.Button(new Rect(rect.x+35,rect.y,rect.width-35,rect.height),GUIContent.none,GUIStyle.none)&&selected!=entry)
                     {if(dirty){pendingSelection=entry;confirm="switch";}else Select(entry);}
                     GUI.Label(new Rect(rect.x+37,rect.y,rect.width-101,nameHeight),Labels.UnitName(entry),nameStyle);
-                    if(parentHeight>0)GUI.Label(new Rect(rect.x+37,rect.y+nameHeight,rect.width-43,parentHeight),entry.ParentText,labelStyle);
+                    if(parentHeight>0)GUI.Label(new Rect(rect.x+37,rect.y+nameHeight,rect.width-43,parentHeight),parentRemark,smallStyle);
                     GUI.Label(new Rect(rect.xMax-64,rect.y,62,40),rule?.Price?.ToString()??entry.OriginalPrice.ToString(),modified?subStyle:columnStyle);
                 }
             }

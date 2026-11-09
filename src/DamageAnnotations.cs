@@ -148,26 +148,27 @@ namespace ExpansionaryEditor
             {
                 foreach(var entry in entries.OrderBy(e=>e.Owner.Assembly.GetName().Name).ThenBy(e=>e.Owner.FullName))
                 {
-                    GUILayout.Label("来源："+DamageModName(entry.Owner.Assembly),labelStyle);
-                    GUILayout.Label(DamageMechanism(key,entry.Owner),labelStyle);
+                    DrawRemark("来源："+DamageModName(entry.Owner.Assembly));
+                    DrawRemark(DamageMechanism(key,entry.Owner));
                     if(entry.Units.Count>0)
-                        GUILayout.Label("预制体关联："+string.Join("、",entry.Units.OrderBy(u=>u.Module).ThenBy(Labels.UnitName)
-                            .Select(u=>SourceName(u.Module)+" · "+Labels.UnitName(u)).Distinct()),labelStyle);
+                        DrawRemark("预制体关联："+string.Join("、",entry.Units.OrderBy(u=>u.Module).ThenBy(Labels.UnitName)
+                            .Select(u=>SourceName(u.Module)+" · "+Labels.UnitName(u)).Distinct()));
                     if(DrawFold("resistance/calls/"+key+"/"+entry.Owner.Assembly.GetName().Name+"/"+entry.Owner.FullName,"调用入口",0,0,0,false,3))
                     {
-                        GUILayout.Label("程序集："+entry.Owner.Assembly.GetName().Name,labelStyle);
-                        GUILayout.Label("组件："+entry.Owner.FullName,labelStyle);
-                        foreach(var method in entry.Methods.OrderBy(m=>m,StringComparer.Ordinal))GUILayout.Label(method,labelStyle);
+                        DrawRemark("程序集："+entry.Owner.Assembly.GetName().Name);
+                        DrawRemark("组件："+entry.Owner.FullName);
+                        foreach(var method in entry.Methods.OrderBy(m=>m,StringComparer.Ordinal))DrawRemark(method);
                     }
                     GUILayout.Space(8);
                 }
-                if(key!="Freeze")GUILayout.Label("仅调整送入原版受伤入口的正伤害，与基础类型倍率相乘；治疗、直接写生命和强制死亡不受此项影响。",labelStyle);
+                if(key!="Freeze")DrawRemark("仅调整送入原版受伤入口的正伤害，与基础类型倍率相乘；治疗、直接写生命和强制死亡不受此项影响。");
             }
             else if(key.StartsWith("source/",StringComparison.Ordinal))
             {
                 var parts=key.Split('/');
-                GUILayout.Label("来源程序集："+parts[1]+"\n组件："+parts[2],labelStyle);
-                GUILayout.Label(ResistanceLabels.ContainsKey(key)?"当前未记录成功接入的调用入口。":"当前来源未加载或未识别；保留已保存的数值，当前没有对应的来源入口生效。",labelStyle);
+                DrawRemark("来源程序集："+parts[1]);
+                DrawRemark("组件："+parts[2]);
+                DrawRemark(ResistanceLabels.ContainsKey(key)?"当前未记录成功接入的调用入口。":"当前来源未加载或未识别；保留已保存的数值，当前没有对应的来源入口生效。");
             }
             GUILayout.EndVertical();
         }

@@ -11,7 +11,7 @@ namespace ExpansionaryEditor
         void DrawComponents()
         {
             if(selected.Slots==null)return;
-            var slots=selected.Slots.Where(s=>tab==1?s.Group.StartsWith("右"):s.Group.StartsWith("左"))
+            var slots=selected.Slots.Where(s=>tab==RightHandTab?s.Group.StartsWith("右"):s.Group.StartsWith("左"))
                 .Where(s=>s.Readable&&s.FieldName!="enabled"&&Matches(s.Label)).ToList();
             if(slots.Count==0)GUILayout.Label("无参数",labelStyle);
             var sections=slots.GroupBy(s=>s.Key.Substring(0,s.Key.LastIndexOf('/')))

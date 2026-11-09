@@ -15,9 +15,11 @@ namespace ExpansionaryEditor
         bool dirty;
         string search="",paramSearch="",bulkFactor="1.5",error="",confirm="",priceInput;
         int tab,bulkKind;
+        const int StatsTab=0,ResistanceTab=1,RightHandTab=2,LeftHandTab=3,AbilitiesTab=4,BatchTab=5,SummaryTab=6,LibraryTab=7;
         Vector2 unitsScroll,valuesScroll;
         readonly HashSet<string> batch=new HashSet<string>();
-        readonly string[] tabs={"属性","右手","左手","技能","批量","改动","预设"};
+        readonly string[] tabs={"属性","承伤","右手","左手","技能","批量","改动","预设"};
+        bool ComponentTab=>tab>=RightHandTab&&tab<=AbilitiesTab;
         float rowLabelWidth=400;
         bool clearInputFocus;
         string focusedInput="";
@@ -223,7 +225,7 @@ namespace ExpansionaryEditor
         {
             selected=entry;draft=entry!=null&&Settings.Units.TryGetValue(entry.Key,out var rule)?JsonConvert.DeserializeObject<UnitRule>(JsonConvert.SerializeObject(rule)):new UnitRule();
             dirty=false;error="";priceInput=null;fieldErrors.Clear();pendingTextCommit.Clear();valuesScroll=Vector2.zero;GUI.FocusControl(null);
-            if(tab>=1&&tab<=3)LoadSelectedGraph();
+            if(ComponentTab)LoadSelectedGraph();
         }
         void LoadSelectedGraph(){if(selected!=null&&selected.Slots==null)Guard(()=>EnsureGraph(selected));}
         void DrawDetails(float height,float width)
@@ -234,21 +236,23 @@ namespace ExpansionaryEditor
             Settings.Units.TryGetValue(selected?.Key??"",out var currentRule);
             string state=fieldErrors.Count>0?"待修正":dirty?"未保存":OverrideCount(currentRule)>0?"已修改":"";
             GUILayout.Label(state,subStyle,GUILayout.Width(100),GUILayout.Height(44));GUILayout.EndHorizontal();
-            float parentHeight=selected!=null&&!string.IsNullOrEmpty(selected.ParentText)?Mathf.Max(36,labelStyle.CalcHeight(new GUIContent(selected.ParentText),width)):0;
-            if(parentHeight>0)GUILayout.Label(selected.ParentText,labelStyle,GUILayout.Height(parentHeight));
+            string parentRemark=RemarkText(selected?.ParentText);
+            float parentHeight=parentRemark.Length>0?Mathf.Max(36,smallStyle.CalcHeight(new GUIContent(parentRemark),width)):0;
+            if(parentHeight>0)GUILayout.Label(parentRemark,smallStyle,GUILayout.Height(parentHeight));
             GUILayout.Space(12);int next=GUILayout.Toolbar(tab,tabs,buttonStyle,GUILayout.Height(42));
-            if(next!=tab){tab=next;valuesScroll=Vector2.zero;paramSearch="";if(tab>=1&&tab<=3)LoadSelectedGraph();if(tab==6)Guard(RefreshLibrary);}
-            GUILayout.Space(18);bool filtered=tab>=1&&tab<=3;
+            if(next!=tab){tab=next;valuesScroll=Vector2.zero;paramSearch="";if(ComponentTab)LoadSelectedGraph();if(tab==LibraryTab)Guard(RefreshLibrary);}
+            GUILayout.Space(18);bool filtered=ComponentTab;
             if(filtered)
             {
                 GUI.SetNextControlName("parameter-search");paramSearch=GUILayout.TextField(paramSearch,inputStyle,GUILayout.Height(40));
                 if(string.IsNullOrEmpty(paramSearch)&&Event.current.type==EventType.Repaint){var rect=GUILayoutUtility.GetLastRect();rect.x+=14;GUI.Label(rect,"搜索",columnStyle);}
                 GUILayout.Space(12);
             }
-            if(tab<=3)DrawColumns();parameterFolds.SetQuery(paramSearch);rowLabelWidth=Mathf.Max(120,width-574);
-            valuesScroll=GUILayout.BeginScrollView(valuesScroll,false,true,GUILayout.Height(Mathf.Max(100,height-128-parentHeight-(filtered?52:0)-(tab<=3?34:0))));
-            if(tab==6)DrawLibrary();else if(selected==null)GUILayout.Label("未安装",sectionStyle);
-            else if(tab==0)DrawStats();else if(tab==4)DrawBatch();else if(tab==5)DrawSummary();else if(tab==3)DrawAbilities();else DrawComponents();
+            bool columns=tab<=AbilitiesTab;
+            if(columns)DrawColumns();parameterFolds.SetQuery(paramSearch);rowLabelWidth=Mathf.Max(120,width-574);
+            valuesScroll=GUILayout.BeginScrollView(valuesScroll,false,true,GUILayout.Height(Mathf.Max(100,height-128-parentHeight-(filtered?52:0)-(columns?34:0))));
+            if(tab==LibraryTab)DrawLibrary();else if(selected==null)GUILayout.Label("未安装",sectionStyle);
+            else if(tab==StatsTab)DrawStats();else if(tab==ResistanceTab)DrawResistances();else if(tab==BatchTab)DrawBatch();else if(tab==SummaryTab)DrawSummary();else if(tab==AbilitiesTab)DrawAbilities();else DrawComponents();
             GUILayout.EndScrollView();
         }
         void DrawActions()
@@ -275,7 +279,6 @@ namespace ExpansionaryEditor
             bool on=draft.Price.HasValue,was=on;string value=priceInput??draft.Price?.ToString()??selected.OriginalPrice.ToString(),old=value;
             DrawFieldRow("price",ref on,ref value,"价格",selected.OriginalPrice.ToString(),typeof(int),"恢复基准会取消此项覆盖；保存后生效",savedRule?.Price.HasValue==true,savedRule?.Price?.ToString());
             if(on!=was||value!=old){draft.Price=on?(draft.Price??(int)selected.OriginalPrice):(int?)null;priceInput=on?value:null;RecheckDirty();}
-            DrawResistances();
             foreach(var group in Labels.Stats.GroupBy(d=>EditPresentation.BasicCategory(d.Field)))
             {
                 int modified=group.Count(d=>savedRule?.Stats.ContainsKey(d.Field)==true);
@@ -350,6 +353,8 @@ namespace ExpansionaryEditor
             if(on!=oldOn||value!=old){if(on)values[key]=value;else values.Remove(key);RecheckDirty();}
         }
         bool Matches(string text)=>string.IsNullOrWhiteSpace(paramSearch)||text.IndexOf(paramSearch,StringComparison.OrdinalIgnoreCase)>=0;
+        static string RemarkText(string text)=>string.IsNullOrEmpty(text)?"":"（"+text+"）";
+        void DrawRemark(string text)=>GUILayout.Label(RemarkText(text),smallStyle);
 
         void Guard(Action action){try{action();error="";}catch(Exception ex){error=ex.Message;Logger.LogError(ex);}}
     }

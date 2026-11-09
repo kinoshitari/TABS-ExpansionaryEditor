@@ -130,7 +130,7 @@ namespace ExpansionaryEditor
                 foreach(var item in historyRows.ToArray())
                 {
                     GUILayout.BeginHorizontal();GUILayout.BeginVertical();GUILayout.Label(item.Title,labelStyle,GUILayout.MinHeight(34));
-                    GUILayout.Label(item.Time.ToString("MM-dd HH:mm"),columnStyle,GUILayout.MinHeight(34));GUILayout.EndVertical();
+                    GUILayout.Label(RemarkText(item.Time.ToString("MM-dd HH:mm")),columnStyle,GUILayout.MinHeight(34));GUILayout.EndVertical();
                     if(GUILayout.Button("恢复",buttonStyle,GUILayout.Width(96),GUILayout.Height(44)))Guard(()=>{if(dirty)throw new FormatException("请先保存");pendingHistory=item;confirm="history";});
                     GUILayout.EndHorizontal();GUILayout.Space(10);
                 }
@@ -150,7 +150,7 @@ namespace ExpansionaryEditor
             foreach(var file in files)
             {
                 GUILayout.BeginHorizontal();GUILayout.BeginVertical();GUILayout.Label(file.Name,labelStyle,GUILayout.MinHeight(40));
-                if(kind!="Global")GUILayout.Label(file.Scope,columnStyle,GUILayout.MinHeight(34));GUILayout.EndVertical();
+                if(kind!="Global")GUILayout.Label(RemarkText(file.Scope),smallStyle,GUILayout.MinHeight(34));GUILayout.EndVertical();
                 if(GUILayout.Button("预览",buttonStyle,GUILayout.Width(88),GUILayout.Height(44)))Guard(()=>PreviewPreset(file.Path));
                 GUILayout.Space(8);if(GUILayout.Button("改名",buttonStyle,GUILayout.Width(88),GUILayout.Height(44)))Guard(()=>{
                     pendingRenamePath=file.Path;pendingPresetPath=EditData.PresetPath(Path.GetDirectoryName(file.Path),presetName);
