@@ -30,7 +30,7 @@ namespace ExpansionaryEditor
             foreach(var entry in DamageAnnotations.Values.SelectMany(e=>e))
                 if(types.Any(t=>entry.Owner.IsAssignableFrom(t)))entry.Units.Add(unit);
         }
-        static string DamageModName(Assembly assembly)
+        internal static string DamageModName(Assembly assembly)
         {
             if(assembly==typeof(Unit).Assembly)return "TABS 原版";
             switch(SourceAssemblyName(assembly))

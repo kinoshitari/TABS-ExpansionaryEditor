@@ -224,7 +224,7 @@ namespace ExpansionaryEditor
         public void Select(UnitEntry entry)
         {
             selected=entry;draft=entry!=null&&Settings.Units.TryGetValue(entry.Key,out var rule)?JsonConvert.DeserializeObject<UnitRule>(JsonConvert.SerializeObject(rule)):new UnitRule();
-            dirty=false;error="";priceInput=null;fieldErrors.Clear();pendingTextCommit.Clear();valuesScroll=Vector2.zero;GUI.FocusControl(null);
+            dirty=false;error="";priceInput=null;weaponSyncNote="";fieldErrors.Clear();pendingTextCommit.Clear();valuesScroll=Vector2.zero;GUI.FocusControl(null);
             if(ComponentTab)LoadSelectedGraph();
         }
         void LoadSelectedGraph(){if(selected!=null&&selected.Slots==null)Guard(()=>EnsureGraph(selected));}
@@ -338,6 +338,9 @@ namespace ExpansionaryEditor
             var def=Labels.Stats.FirstOrDefault(d=>d.Field==key);
             if(def!=null)return number<def.Min?def.Label+"不能小于 "+def.Min:"";
             var slot=selected?.Slots?.FirstOrDefault(v=>v.Key==key);
+            if(slot!=null&&slot.Minimum.HasValue&&number<slot.Minimum.Value)return slot.Label+"不能小于 "+Numbers.Text(slot.Minimum.Value);
+            string effectIssue=WeaponEffects.RangeIssue(slot,value,selected?.Slots??new List<ValueSlot>(),draft.Components);
+            if(effectIssue.Length>0)return effectIssue;
             if(slot?.ComponentType==typeof(DamageMultiplier)&&number<0)return "承伤倍率不能为负数";
             if(slot!=null&&slot.Label.Contains("冷却")&&number<0)return "冷却不能为负数";
             if(slot!=null&&slot.FieldName=="magSize"&&number<1)return "弹匣容量至少为 1";

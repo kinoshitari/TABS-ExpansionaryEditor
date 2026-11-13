@@ -15,6 +15,7 @@ namespace ExpansionaryEditor
         {
             foreach(var type in slots.Where(s=>rule.Components.ContainsKey(s.Key)&&s.ComponentType!=null).Select(s=>s.ComponentType).Distinct())
             {
+                WeaponEffects.Ensure(type,harmony);
                 var method=AccessTools.Method(type,"Start",Type.EmptyTypes);
                 if(method!=null && !method.IsAbstract && method.GetMethodBody()!=null && Patched.Add(method))
                     harmony.Patch(method,prefix:new HarmonyMethod(typeof(RuntimeFields),nameof(AfterStart)),postfix:new HarmonyMethod(typeof(RuntimeFields),nameof(AfterStart)));
@@ -41,7 +42,8 @@ namespace ExpansionaryEditor
             {
                 if(!pair.Key.StartsWith(path,StringComparison.Ordinal))continue;
                 string name=pair.Key.Substring(path.Length);
-                if(name=="@enabled" && __instance is Behaviour b)b.enabled=bool.Parse(pair.Value);
+                if(name=="@effectEnabled")WeaponEffects.SetEnabled(__instance,bool.Parse(pair.Value));
+                else if(name=="@enabled" && __instance is Behaviour b)b.enabled=bool.Parse(pair.Value);
                 else AssignPath(__instance,name.Split('/'),0,pair.Value);
             }
         }

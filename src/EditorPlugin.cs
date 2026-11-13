@@ -13,7 +13,7 @@ using UnityEngine;
 
 namespace ExpansionaryEditor
 {
-    [BepInPlugin("local.tabs.expansionaryeditor", "TABS 兵种数值编辑器", "1.9.0")]
+    [BepInPlugin("local.tabs.expansionaryeditor", "TABS 兵种数值编辑器", "1.10.0")]
     [BepInDependency("org.bepinex.plugins.SLMAcore", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("GeeztJeez.Expansionary", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("chouchou", BepInDependency.DependencyFlags.SoftDependency)]
@@ -182,6 +182,9 @@ namespace ExpansionaryEditor
                 var slot=entry.Slots.FirstOrDefault(s=>s.Key==pair.Key);
                 if(slot==null)throw new FormatException("参数路径已失效："+pair.Key);
                 var value=Numbers.Parse(pair.Value,slot.Type);
+                if(slot.Minimum.HasValue&&Convert.ToDouble(value)<slot.Minimum.Value)throw new FormatException(slot.Label+"不能小于 "+Numbers.Text(slot.Minimum.Value));
+                string effectIssue=WeaponEffects.RangeIssue(slot,pair.Value,entry.Slots,rule.Components);
+                if(effectIssue.Length>0)throw new FormatException(effectIssue);
                 if(slot.ComponentType==typeof(DamageMultiplier)&&Convert.ToDouble(value)<0)throw new FormatException("承伤倍率不能为负数");
                 if(slot.Type!=typeof(bool)&&slot.Label.Contains("冷却")&&Convert.ToDouble(value)<0)throw new FormatException(slot.Label+"不能为负数");
                 if(slot.FieldName=="magSize" && Convert.ToInt32(value)<1)throw new FormatException("弹匣容量至少为 1");

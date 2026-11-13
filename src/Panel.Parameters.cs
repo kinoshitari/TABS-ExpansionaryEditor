@@ -11,9 +11,13 @@ namespace ExpansionaryEditor
         void DrawComponents()
         {
             if(selected.Slots==null)return;
-            var slots=selected.Slots.Where(s=>tab==RightHandTab?s.Group.StartsWith("右"):s.Group.StartsWith("左"))
-                .Where(s=>s.Readable&&s.FieldName!="enabled"&&Matches(s.Label)).ToList();
-            if(slots.Count==0)GUILayout.Label("无参数",labelStyle);
+            DrawWeaponSync();
+            string prefix=tab==RightHandTab?"R/":"L/";
+            var hand=selected.Slots.Where(s=>s.Key.StartsWith(prefix,StringComparison.Ordinal)).ToList();
+            var effects=hand.Where(s=>!string.IsNullOrEmpty(s.EffectKey)).GroupBy(s=>s.EffectKey)
+                .Where(g=>Matches(g.First().EffectName)||g.Any(s=>Matches(s.Label))).ToList();
+            var slots=hand.Where(s=>string.IsNullOrEmpty(s.EffectKey)&&s.Readable&&s.FieldName!="enabled"&&Matches(s.Label)).ToList();
+            if(slots.Count==0&&effects.Count==0)GUILayout.Label("无参数",labelStyle);
             var sections=slots.GroupBy(s=>s.Key.Substring(0,s.Key.LastIndexOf('/')))
                 .OrderBy(g=>g.Any(s=>s.ComponentName=="远程武器"||s.ComponentName=="近战武器")?0:g.Any(s=>s.ComponentName=="近战命中")?1:g.Any(s=>s.ComponentName=="弹丸命中")?2:g.Any(s=>s.ComponentName=="爆炸")?3:4).ToList();
             foreach(var section in sections)
@@ -29,6 +33,7 @@ namespace ExpansionaryEditor
                     foreach(var slot in category.OrderBy(v=>FieldRank(v.FieldName)))DrawValue(draft.Components,slot.Key,slot.Label,slot.Original,slot.Type,slot.Note);
                 }
             }
+            DrawWeaponEffects(effects);
         }
         static string CombatSection(ValueSlot slot)
         {

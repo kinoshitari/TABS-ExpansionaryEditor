@@ -36,6 +36,8 @@ namespace ExpansionaryEditor
     {
         public string Key, Group, Label, Path, ComponentName, FieldName, Original;
         public string Note;
+        public string EffectKey, EffectName;
+        public double? Minimum;
         public bool Readable;
         public Type Type, ComponentType;
         public Action<string> Assign;
@@ -55,6 +57,7 @@ namespace ExpansionaryEditor
     {
         public string UnitKey;
         public string RootPath;
+        public Component[] DisabledWeaponEffects = new Component[0];
     }
 
     public static partial class Labels

@@ -51,6 +51,7 @@ namespace ExpansionaryEditor
                 if(slot?.ComponentType==typeof(DamageMultiplier))minimum=0;
                 if(slot!=null&&slot.Label.Contains("冷却"))minimum=0;
                 if(slot?.FieldName=="magSize")minimum=1;
+                if(slot!=null&&slot.Minimum.HasValue)minimum=(decimal)slot.Minimum.Value;
                 if(key.EndsWith("/@count")){minimum=0;next=Math.Min(next,128);}
                 if(selected?.Constants?.Any(s=>s.Key==key&&s.Readable)==true)minimum=0;
                 next=Math.Max(next,minimum);

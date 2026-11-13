@@ -1,12 +1,12 @@
 # TABS 数值编辑器
 
-TABS 游戏内兵种数值编辑器，当前版本 **1.9.0**。按 **F6** 打开或关闭。
+TABS 游戏内兵种数值编辑器，当前版本 **1.10.0**。按 **F6** 打开或关闭。
 
-承伤设置独立为“承伤”选项卡；主兵种与伤害来源等备注统一使用中文括号，和名称、参数分开显示。
+同款双持武器可将当前一侧修改同步到另一只手；左右手新增“特殊效果”，分别开关并调整武器已有的寒冷、燃烧／持续伤害等词条。
 
 ## 安装与更新
 
-从 [v1.9.0 Release](https://github.com/kinoshitari/TABS-ExpansionaryEditor/releases/tag/v1.9.0) 下载 `Local-ExpansionaryEditor-1.9.0.zip`。
+从 [v1.10.0 Release](https://github.com/kinoshitari/TABS-ExpansionaryEditor/releases/tag/v1.10.0) 下载 `Local-ExpansionaryEditor-1.10.0.zip`。
 
 在 r2modman 选择 TABS 和目标配置，打开 **设置 → Import local mod（导入本地模组）**，选择 ZIP，无需解压。使用原配置更新，原数值与预设继续保留。
 
@@ -16,6 +16,8 @@ TABS 游戏内兵种数值编辑器，当前版本 **1.9.0**。按 **F6** 打开
 
 - 编辑原版、HiddenUnits、臭臭、Expansionary、圣诞节（Holiday 2.2.1）、动物王国（AnimalKingdom 1.0.4）、中国神话（Chinese_myth 0.2.1）。
 - 属性、独立承伤页、左右手武器、弹丸及可识别技能字段。
+- 同款双持在右手点“同步到左手”，或在左手点“同步到右手”；包含整只手的草稿、特殊效果和还原，仍需保存。
+- 左右手“特殊效果”支持寒冷、燃烧／持续伤害、流血、雷电、生化、酸蚀、感染、石化等实际附加词条；开关不关闭普通命中，未识别数值的状态只提供开关。
 - 隐藏、臭臭、圣诞节及动物王国兵种补充中文名称；衍生兵种显示主兵种，支持按主兵种搜索。
 - 承伤页集中四类原生伤害、燃烧／持续伤害、爆炸、冰冻积累、模组实际扣血来源、部位系数及护甲与冲击。
 - 来源项下的“注释”默认收起，展开查看模组、机制和已确认的预制体关联兵种；备注以“（…）”显示，“调用入口”列出实际接入的组件与方法。
@@ -78,7 +80,7 @@ dotnet build .\ExpansionaryEditor.csproj -c Release --no-restore `
 .\Build-Mod.ps1 -SkipBuild
 ```
 
-输出位于 `dist/Local-ExpansionaryEditor-1.9.0.zip`。打包脚本不会覆盖同版本的已有输出；重打包前先移走 `dist` 中的同名 ZIP 与 `build/mod-1.9.0`。
+输出位于 `dist/Local-ExpansionaryEditor-1.10.0.zip`。打包脚本不会覆盖同版本的已有输出；重打包前先移走 `dist` 中的同名 ZIP 与 `build/mod-1.10.0`。
 
 也可退出游戏后手工安装构建的 DLL。已有 r2modman 登记时，脚本同步本编辑器的版本与前置清单；不修改其他模组的启停状态：
 
@@ -86,6 +88,6 @@ dotnet build .\ExpansionaryEditor.csproj -c Release --no-restore `
 .\Install.ps1 -ProfileRoot 'D:\r2modman-data\TABS\profiles\Default'
 ```
 
-## 1.9.0 交付状态
+## 1.10.0 交付状态
 
 源码已构建并生成模组包。按本次要求，未运行测试、实际 r2modman 导入、界面预览或游戏验证。

@@ -115,11 +115,12 @@ namespace ExpansionaryEditor
         }
 
         static bool IsAddon(Type type) => type.Namespace == "AddonExpansionary"||EditorPlugin.CombatAssemblies.Contains(type.Assembly);
-        static bool IsCombatType(Type type) => IsAddon(type) || Allowed.ContainsKey(type.Name) || type.Name.Contains("CombatMove");
+        static bool IsCombatType(Type type) => IsAddon(type) || Allowed.ContainsKey(type.Name) || type.Name.Contains("CombatMove") || WeaponEffects.IsCarrier(type);
         static bool Serialized(FieldInfo f) => !f.IsStatic && !f.IsInitOnly && !f.IsNotSerialized &&
             (f.IsPublic || f.IsDefined(typeof(SerializeField), true));
         static bool AllowedField(Type type, FieldInfo f)
         {
+            if(WeaponEffects.IsEffectField(type,f.Name))return true;
             if (Labels.PrivateSetting(type,f.Name))return true;
             if (!Serialized(f)) return false;
             if (Allowed.TryGetValue(f.DeclaringType.Name, out var allow)) return allow.Contains(f.Name);
@@ -139,7 +140,12 @@ namespace ExpansionaryEditor
                 if (!AllowedField(type,field)) continue;
                 object value=field.GetValue(obj);
                 string key=path+"/"+field.Name;
-                if (Numbers.Scalar(field.FieldType))
+                if(WeaponEffects.IsWeaponPath(path)&&WeaponEffects.IsEffectField(type,field.Name)&&obj is Component carrier&&value is UnitEffectBase effect&&effect)
+                {
+                    var next=AddWeaponEffect(carrier,effect,path,key+"->",group);
+                    if(clone)field.SetValue(obj,next);
+                }
+                else if (Numbers.Scalar(field.FieldType))
                 {
                     var slot=new ValueSlot {Key=key,Group=group,Path=objectName,ComponentName=Labels.Component(type),FieldName=field.Name,
                         Label=Labels.ReadableLabel(field.Name,type),ComponentType=ownerType,Type=field.FieldType,Original=Numbers.Text(value),Assign=s=>field.SetValue(obj,Numbers.Parse(s,field.FieldType)),Readable=Labels.ReadableField(field.Name,type)};
@@ -163,6 +169,46 @@ namespace ExpansionaryEditor
                     else if (clone && field.FieldType.IsValueType) field.SetValue(obj,next);
                 }
             }
+        }
+
+        UnitEffectBase AddWeaponEffect(Component carrier,UnitEffectBase effect,string carrierPath,string effectPath,string group)
+        {
+            var type=effect.GetType();var definition=WeaponEffects.Describe(type);
+            string note="来源："+EditorPlugin.DamageModName(type.Assembly)+"\n"+definition.Note+"\n效果："+effect.name+"\n组件："+type.FullName;
+            bool repeatCold=WeaponEffects.HasRepeatCold(carrier.GetType(),type);
+            if(repeatCold)note+="\n首次命中使用效果预制体的寒冷值，追击另读武器参数。"+
+                (carrier.GetType().FullName=="TGCore.Library.ExplosionAddFewEffects"?"此爆炸的追击值为 0 时沿用目标已有寒冷值。":"");
+            Add(new ValueSlot{Key=carrierPath+"/@effectEnabled",Group=group,Label="启用"+definition.Name,Path=carrier.name,
+                ComponentName=Labels.Component(carrier.GetType()),ComponentType=carrier.GetType(),FieldName="effectEnabled",Type=typeof(bool),Original="true",Readable=true,
+                EffectKey=carrierPath,EffectName=definition.Name,Note=note,Assign=s=>WeaponEffects.SetEnabled(carrier,bool.Parse(s))});
+            if(repeatCold)
+            {
+                var field=AccessTools.Field(carrier.GetType(),"freezeAmount");
+                Add(new ValueSlot{Key=carrierPath+"/freezeAmount",Group=group,Label="追击寒冷值",Path=carrier.name,
+                    ComponentName=definition.Name,ComponentType=carrier.GetType(),FieldName="freezeAmount",Type=typeof(float),Original=Numbers.Text(field.GetValue(carrier)),Readable=true,Minimum=0,
+                    EffectKey=carrierPath,EffectName=definition.Name,Note=note,Assign=s=>field.SetValue(carrier,Numbers.Parse(s,typeof(float)))});
+            }
+            // Component-valued effect references were previously left on the shared asset.
+            // Clone only this effect prefab and its inspected settings, not live target state.
+            var target=effect;
+            int ordinal=Array.IndexOf(effect.gameObject.GetComponents(type),effect);
+            string effectFields=effectPath+"/"+EditorPlugin.ComponentId(type)+"["+ordinal+"]/";
+            if(clone&&rule!=null&&definition.Parameters.Any(p=>rule.Components.ContainsKey(effectFields+p.Field)))
+            {
+                var copy=Object.Instantiate(effect.gameObject,host,false);copy.name=effect.gameObject.name;
+                var tag=copy.GetComponent<OwnerTag>()??copy.AddComponent<OwnerTag>();tag.UnitKey=unitKey;tag.RootPath=effectPath;
+                target=(UnitEffectBase)copy.GetComponents(type)[ordinal];
+            }
+            foreach(var parameter in definition.Parameters)
+            {
+                var field=AccessTools.Field(type,parameter.Field);
+                if(field==null||!Numbers.Scalar(field.FieldType))continue;
+                Add(new ValueSlot{Key=effectFields+field.Name,
+                    Group=group,Label=repeatCold&&field.Name=="coldAmount"?"首次寒冷值":parameter.Label,Path=effect.name,ComponentName=definition.Name,ComponentType=type,FieldName=field.Name,
+                    Type=field.FieldType,Original=Numbers.Text(field.GetValue(effect)),Readable=true,Minimum=parameter.Minimum,
+                    EffectKey=carrierPath,EffectName=definition.Name,Note=note,Assign=s=>field.SetValue(target,Numbers.Parse(s,field.FieldType))});
+            }
+            return target;
         }
 
         object WalkReference(object value, Type type, string path, string group, string objectName, Transform root, int depth, int nesting,Type ownerType)
