@@ -62,6 +62,7 @@ namespace ExpansionaryEditor
             Visible=!Visible;
             if(Visible)
             {
+                RefreshCatalogOrder();
                 previousIme=Input.imeCompositionMode;Input.imeCompositionMode=IMECompositionMode.On;
                 oldTimeScale=Time.timeScale;oldCursorVisible=Cursor.visible;oldCursorLock=Cursor.lockState;
                 oldActionsEnabled=Landfall.TABS_Input.PlayerActions.Instance.Enabled;
@@ -275,6 +276,7 @@ namespace ExpansionaryEditor
         }
         void DrawStats()
         {
+            DrawHealthOverview();
             Settings.Units.TryGetValue(selected.Key,out var savedRule);
             bool on=draft.Price.HasValue,was=on;string value=priceInput??draft.Price?.ToString()??selected.OriginalPrice.ToString(),old=value;
             DrawFieldRow("price",ref on,ref value,"价格",selected.OriginalPrice.ToString(),typeof(int),"恢复基准会取消此项覆盖；保存后生效",savedRule?.Price.HasValue==true,savedRule?.Price?.ToString());

@@ -38,7 +38,7 @@ namespace ExpansionaryEditor
             GUILayout.EndHorizontal();GUILayout.Space(10);
             var visible=Filtered().ToList();var folds=FactionFolds;
             unitsScroll=GUILayout.BeginScrollView(unitsScroll,false,false,GUILayout.Height(Mathf.Max(100,height-210)));
-            foreach(var group in visible.GroupBy(e=>e.Faction))
+            foreach(var group in visible.GroupBy(e=>e.Faction).OrderBy(g=>g.Min(e=>e.FactionOrder)))
             {
                 string key=group.Key;bool open=folds.IsOpen(key);
                 GUILayout.BeginHorizontal();

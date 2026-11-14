@@ -25,6 +25,7 @@ namespace ExpansionaryEditor
         readonly HashSet<DatabaseID> vanillaIds=new HashSet<DatabaseID>();
         readonly Dictionary<int,string> catalogKeys=new Dictionary<int,string>();
         DM.LandfallContentDatabase catalogDatabase;
+        Faction[] catalogFactions=new Faction[0];
         static readonly SourceSpec VanillaSource=new SourceSpec("Vanilla","Vanilla","原版");
         static readonly SourceSpec HiddenSource=new SourceSpec("HiddenUnits","HiddenUnits","隐藏模组");
         static readonly SourceSpec HolidaySource=new SourceSpec("Holiday","Holiday","圣诞节");
@@ -162,7 +163,11 @@ namespace ExpansionaryEditor
                 catalogDatabase=CurrentDatabase();ReadOfficialUnitIds();ReadHiddenUnitIds();
                 ReadBundleUnitIds("Holiday.HolidayMain","holiday",HolidaySource,"teamgrad.holiday");
                 ReadBundleUnitIds("AnimalKingdom.AKMain","kermate",AnimalSource,"teamgrad.animalkingdom");
-                var factions=Resources.FindObjectsOfTypeAll<Faction>();
+                catalogFactions=DM.ContentDatabase.Instance().GetFactionsOrderedByIndex().Where(f=>f)
+                    .Concat(Resources.FindObjectsOfTypeAll<Faction>().Where(f=>f).OrderBy(f=>f.index)).Distinct().ToArray();
+                // Use registered factions, not an unordered scan of loaded resources.
+                // Custom collections must not replace a unit's original faction.
+                var factions=catalogFactions.Where(f=>!f.IsCustom).Concat(catalogFactions.Where(f=>f.IsCustom)).ToArray();
                 foreach(var bp in DatabaseBlueprints(catalogDatabase).Where(b=>b))
                 {
                     SourceSpec source;
@@ -173,8 +178,9 @@ namespace ExpansionaryEditor
                     if(!bp.UnitBase)continue;
                     string key=ResolveKey(bp);
                     if(ByKey.ContainsKey(key))throw new InvalidOperationException(source.Label+"有重复兵种标识："+RawName(bp));
-                    var faction=factions.FirstOrDefault(f=>f&&(AccessTools.Field(typeof(Faction),"m_units").GetValue(f) as UnitBlueprint[])?.Contains(bp)==true);
+                    var faction=factions.FirstOrDefault(f=>f.Units?.Contains(bp)==true);
                     var entry=new UnitEntry {Key=key,Name=RawName(bp),AssetName=bp.name,Module=source.Module,Source=source.Label,Faction=faction?faction.Entity.Name:"附加／召唤兵种",Blueprint=bp,
+                        NativeFaction=faction,CatalogOrder=Entries.Count,
                         OriginalPrice=bp.GetUnitCost(true),OriginalPriceWithoutRiders=bp.GetUnitCost(false),Base=bp.UnitBase,Right=bp.RightWeapon,Left=bp.LeftWeapon,Props=ReadProps(bp),
                         Children=bp.objectsToSpawnAsChildren==null?new GameObject[0]:(GameObject[])bp.objectsToSpawnAsChildren.Clone()};
                     foreach(var stat in Labels.Stats)entry.OriginalStats[stat.Field]=AccessTools.Field(typeof(UnitBlueprint),stat.Field).GetValue(bp);
@@ -182,15 +188,43 @@ namespace ExpansionaryEditor
                 }
                 InitializeDamageSources();
                 CatalogRelations.Build(Entries);
-                Entries.Sort((a,b)=>{int x=string.Compare(a.Module,b.Module,StringComparison.Ordinal);if(x==0)x=string.Compare(a.Faction,b.Faction,StringComparison.Ordinal);return x==0?a.OriginalPrice.CompareTo(b.OriginalPrice):x;});
                 foreach(var entry in Entries)if(Settings.Enabled&&Settings.Units.TryGetValue(entry.Key,out var rule)){Validate(entry,rule);Apply(entry,rule);}
                 Ready=true;
+                RefreshCatalogOrder();
                 Status=fileError?"设置文件有错误，原文件保留。":"已载入 "+Entries.Count+" 个兵种 · 保存后重新摆放／重开关卡";
                 if(!Entries.Any(e=>e.Module==moduleFilter))moduleFilter="Vanilla";
                 ExportCatalog(false);
                 Logger.LogInfo("READY: "+string.Join("; ",Entries.GroupBy(e=>e.Module).Select(g=>g.Key+"="+g.Count()))+"; "+Settings.Units.Count+" overrides");
             }
             catch(Exception ex){Status="目录加载失败："+ex.Message;Logger.LogError(ex);}
+        }
+        void RefreshCatalogOrder()
+        {
+            if(!Ready)return;
+            // Follow the visible hotbar, then the native database order for the rest.
+            var factions=FindObjectsOfType<PlacementFactionBar>().Where(b=>b.isActiveAndEnabled)
+                .SelectMany(b=>b.GetFactionsOnBar()).Concat(catalogFactions).Where(f=>f).Distinct().ToList();
+            var ranks=new Dictionary<Faction,Dictionary<DatabaseID,int>>();
+            foreach(var faction in factions)
+            {
+                var units=new Dictionary<DatabaseID,int>();
+                foreach(var bp in (faction.Units==null?new UnitBlueprint[0]:faction.GetRearrangedUnits()).Where(b=>b))
+                    if(!units.ContainsKey(bp.Entity.GUID))units.Add(bp.Entity.GUID,units.Count);
+                ranks[faction]=units;
+            }
+            foreach(var entry in Entries)
+            {
+                int faction=entry.NativeFaction?factions.IndexOf(entry.NativeFaction):-1;
+                entry.FactionOrder=faction<0?int.MaxValue:faction;
+                entry.UnitOrder=entry.NativeFaction&&ranks.TryGetValue(entry.NativeFaction,out var units)&&
+                    units.TryGetValue(entry.Blueprint.Entity.GUID,out var rank)?rank:int.MaxValue;
+            }
+            Entries.Sort((a,b)=>{
+                int order=string.Compare(a.Module,b.Module,StringComparison.Ordinal);
+                if(order==0)order=a.FactionOrder.CompareTo(b.FactionOrder);
+                if(order==0)order=a.UnitOrder.CompareTo(b.UnitOrder);
+                return order==0?a.CatalogOrder.CompareTo(b.CatalogOrder):order;
+            });
         }
     }
 }

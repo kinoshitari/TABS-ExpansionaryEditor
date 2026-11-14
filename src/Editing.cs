@@ -14,7 +14,7 @@ namespace ExpansionaryEditor
         EditRepository Repository => new EditRepository(DataDirectory);
         string PresetDirectory => Path.Combine(DataDirectory, "平衡方案");
         readonly string[] batchFields = { "price", "_healthMultiplier", "_damageMultiplaier", "_attackSpeedMultiplier", "movementSpeedMuiltiplier" };
-        readonly string[] batchLabels = { "价格", "生命值倍率", "伤害倍率", "攻击速度倍率", "移动速度倍率" };
+        readonly string[] batchLabels = { "价格", "额外生命倍率", "伤害倍率", "攻击速度倍率", "移动速度倍率" };
         sealed class BatchRow { public string Name, Before, After; }
         List<BatchRow> batchRows;
         Settings batchBefore, batchCandidate;

@@ -64,6 +64,8 @@ namespace ExpansionaryEditor
             {"Vanilla/DarkKingTransformed","UNIT_FANTASYEVIL_DARKKING"},{"Vanilla/TimeNinjaTransformed","UNIT_FANTASYGOOD_TIMENINJA"}
         };
         static readonly HashSet<string> Templates=new HashSet<string> {"Primal Wobbler","Goblin","Ents","Vulcanic Wraith","BirdDroneDebug","空单位311446"};
+        static bool UniversalSummoner(UnitEntry entry)=>entry.Module=="Vanilla"&&
+            (entry.Name=="UNIT_SECRET_THROWER_PRESENT"||entry.AssetName=="Thrower_Present");
         public static void Build(List<UnitEntry> entries)
         {
             var byId=entries.GroupBy(e=>e.Blueprint.Entity.GUID).ToDictionary(g=>g.Key,g=>g.First());
@@ -80,7 +82,9 @@ namespace ExpansionaryEditor
                         refs.UnionWith(reader.Read(root,out var types));componentTypes.UnionWith(types);
                     }
                 EditorPlugin.RecordDamageSourceUnit(parent,componentTypes);
-                foreach(var bp in refs)if(bp&&byId.TryGetValue(bp.Entity.GUID,out var child)&&child!=parent)incoming[child].Add(parent);
+                // The present elf's random pool contains every unit; it is not lineage.
+                if(!UniversalSummoner(parent))
+                    foreach(var bp in refs)if(bp&&byId.TryGetValue(bp.Entity.GUID,out var child)&&child!=parent)incoming[child].Add(parent);
             }
             foreach(var child in entries.Where(e=>e.IsDerived))
             {
@@ -93,7 +97,7 @@ namespace ExpansionaryEditor
                 child.Parents.Clear();var seen=new HashSet<UnitEntry>{child};var queue=new Queue<UnitEntry>(incoming[child]);
                 while(queue.Count>0)
                 {
-                    var parent=queue.Dequeue();if(!seen.Add(parent))continue;
+                    var parent=queue.Dequeue();if(!seen.Add(parent)||UniversalSummoner(parent))continue;
                     if(!parent.IsDerived&&parent.Faction!="FACTION_WIP")child.Parents.Add(parent);
                     else foreach(var next in incoming[parent])queue.Enqueue(next);
                 }

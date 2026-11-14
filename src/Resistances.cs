@@ -13,7 +13,7 @@ namespace ExpansionaryEditor
             {"Default","普通承伤倍率"},{"Piercing","穿刺承伤倍率"},
             {"Blunt","钝击承伤倍率"},{"Magic","魔法承伤倍率"}
         };
-        static string ResistanceLabel(string key)=>ResistanceLabels.TryGetValue(key,out var title)?title:key;
+        static string ResistanceLabel(string key)=>(ResistanceLabels.TryGetValue(key,out var title)?title:key)+"（附加）";
         void InstallResistances()
         {
             // Scale before armor/refund prefixes so those mods receive the same
@@ -44,9 +44,10 @@ namespace ExpansionaryEditor
         }
         void DrawResistances()
         {
+            DrawNativeResistances();
             var saved=SavedValues(draft.Resistances);
             int pending=ResistanceLabels.Keys.Count(k=>ValueState(draft.Resistances,k)==FieldVisualState.Draft||ValueState(draft.Resistances,k)==FieldVisualState.Restore);
-            if(!DrawFold("resistance","伤害抗性",4,saved?.Count??0,pending,true))return;
+            if(!DrawFold("resistance","附加倍率",4,saved?.Count??0,pending,true))return;
             foreach(var key in new[]{"Default","Piercing","Blunt","Magic"})DrawValue(draft.Resistances,key,ResistanceLabel(key),"1",typeof(float));
             var sourceKeys=ResistanceLabels.Keys.Except(new[]{"Default","Piercing","Blunt","Magic"})
                 .Union(draft.Resistances.Keys.Where(k=>k.StartsWith("source/",StringComparison.Ordinal))).ToList();
@@ -62,28 +63,38 @@ namespace ExpansionaryEditor
                     DrawDamageAnnotation(key);
                 }
             }
-            int modified=Settings.Units.TryGetValue(selected.Key,out var rule)?rule.Components.Keys.Count(k=>k.Contains("/DamageMultiplier[")):0;
-            if(DrawFold("resistance/body","部位命中",0,modified,0,modified>0,1))
+        }
+        static bool OwnDefenseSlot(ValueSlot slot)=>
+            (slot.Key.StartsWith("B/",StringComparison.Ordinal)||slot.Key.StartsWith("P",StringComparison.Ordinal)||slot.Key.StartsWith("C",StringComparison.Ordinal))&&
+            !slot.Key.Contains("->");
+        void DrawNativeResistances()
+        {
+            EnsureGraph(selected);
+            var slots=selected.Slots.Where(s=>s.ComponentType==typeof(DamageMultiplier)&&s.FieldName=="multiplier"&&
+                s.Key.StartsWith("B/",StringComparison.Ordinal)&&!s.Key.Contains("->")).ToList();
+            if(DrawSlotFold("resistance/body","原有部位承伤",slots,true))
             {
-                EnsureGraph(selected);
-                var slots=selected.Slots.Where(s=>s.ComponentType==typeof(DamageMultiplier)&&s.FieldName=="multiplier"&&s.Key.StartsWith("B/",StringComparison.Ordinal)).ToList();
                 if(slots.Count==0)GUILayout.Label("无部位系数",columnStyle,GUILayout.Height(40));
                 foreach(var slot in slots)
                 {
                     string part=BodyPartName(slot.Path);var peers=slots.Where(s=>BodyPartName(s.Path)==part).ToList();
                     if(peers.Count>1)part+=" "+(peers.IndexOf(slot)+1);
-                    DrawValue(draft.Components,slot.Key,part+"承伤倍率",slot.Original,slot.Type);
+                    if(Matches(part+"承伤倍率"))DrawValue(draft.Components,slot.Key,part+"承伤倍率",slot.Original,slot.Type);
                 }
             }
-            int armorModified=rule?.Components.Keys.Count(k=>k.Contains("DamageResistance")||k.Contains("AchillesArmor")||k.Contains("/Armor["))??0;
-            if(!DrawFold("resistance/armor","护甲与冲击",0,armorModified,0,armorModified>0,1))return;
-            EnsureGraph(selected);
-            var defenses=selected.Slots.Where(s=>s.FieldName=="resistPercentage"&&s.ComponentType?.FullName=="HiddenUnits.DamageResistance"||
-                s.ComponentType?.FullName=="TGCore.Library.AchillesArmor"||s.ComponentType==typeof(Armor)&&s.FieldName=="projectileHitForceMultiplier").ToList();
-            foreach(var group in defenses.GroupBy(s=>s.ComponentType==typeof(Armor)?"弹丸冲击":"模组护甲"))
-                if(DrawSlotFold("resistance/defense/"+group.Key,group.Key,group.ToList(),false,1))
-                    foreach(var slot in group)DrawValue(draft.Components,slot.Key,slot.Label,slot.Original,slot.Type);
-            if(defenses.Count==0)GUILayout.Label("无护甲参数",columnStyle,GUILayout.Height(40));
+            var defenses=selected.Slots.Where(s=>OwnDefenseSlot(s)&&(
+                s.FieldName=="resistPercentage"&&s.ComponentType?.FullName=="HiddenUnits.DamageResistance"||
+                s.ComponentType?.FullName=="TGCore.Library.AchillesArmor"&&s.FieldName!="enabled"||
+                s.ComponentType==typeof(Armor)&&s.FieldName=="projectileHitForceMultiplier"||
+                s.FieldName=="armorhealth"&&new[]{"MonkeyArmor","MonkeyKingArmor"}.Contains(s.ComponentType?.Name))).ToList();
+            foreach(var group in defenses.GroupBy(s=>s.ComponentType.FullName))
+            {
+                string title=group.Key=="HiddenUnits.DamageResistance"?"受伤返还（隐藏）":
+                    group.Key=="TGCore.Library.AchillesArmor"?"护甲（TGCore）":
+                    group.Key==typeof(Armor).FullName?"弹丸冲击":"护甲（中国神话）";
+                if(DrawSlotFold("resistance/defense/"+group.Key,title,group.ToList(),true))
+                    foreach(var slot in group.Where(s=>Matches(s.Label)))DrawValue(draft.Components,slot.Key,slot.Label,slot.Original,slot.Type);
+            }
         }
         static string BodyPartName(string name)
         {

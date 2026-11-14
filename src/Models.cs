@@ -12,6 +12,8 @@ namespace ExpansionaryEditor
     {
         public string Key, Name, Faction, Module, Source, AssetName;
         public UnitBlueprint Blueprint;
+        public Faction NativeFaction;
+        public int FactionOrder=int.MaxValue, UnitOrder=int.MaxValue, CatalogOrder;
         public uint OriginalPrice, OriginalPriceWithoutRiders;
         public Dictionary<string, object> OriginalStats = new Dictionary<string, object>();
         public GameObject Base, Right, Left;
@@ -64,7 +66,7 @@ namespace ExpansionaryEditor
     {
         public static readonly StatDef[] Stats = {
             new StatDef("health", "基础生命值", 0.001, "最终生命值还会受体型随机值和生命倍率影响"),
-            new StatDef("_healthMultiplier", "生命值倍率", 0.001),
+            new StatDef("_healthMultiplier", "额外生命倍率", 0.001),
             new StatDef("_damageMultiplaier", "伤害倍率", 0.001, "0 在游戏内部表示默认倍率；禁用伤害请修改武器伤害为 0"),
             new StatDef("_attackSpeedMultiplier", "攻击速度倍率", 0.001, "越大越快；不是攻击间隔"),
             new StatDef("movementSpeedMuiltiplier", "移动速度倍率"),
