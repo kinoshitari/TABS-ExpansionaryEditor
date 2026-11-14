@@ -13,7 +13,7 @@ using UnityEngine;
 
 namespace ExpansionaryEditor
 {
-    [BepInPlugin("local.tabs.expansionaryeditor", "TABS 兵种数值编辑器", "1.10.0")]
+    [BepInPlugin("local.tabs.expansionaryeditor", "TABS 兵种数值编辑器", "1.10.1")]
     [BepInDependency("org.bepinex.plugins.SLMAcore", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("GeeztJeez.Expansionary", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("chouchou", BepInDependency.DependencyFlags.SoftDependency)]
@@ -79,13 +79,17 @@ namespace ExpansionaryEditor
         }
         static IEnumerable<UnitBlueprint> DatabaseBlueprints(DM.LandfallContentDatabase database)
         {return ((System.Collections.IDictionary)AccessTools.Field(typeof(DM.LandfallContentDatabase),"m_unitBlueprints").GetValue(database)).Values.Cast<UnitBlueprint>();}
-        static bool PricePrefix(UnitBlueprint __instance,ref uint __result)
+        static bool PricePrefix(UnitBlueprint __instance,bool __0,ref uint __result)
         {
             var p=Instance;
             if(p==null || !p.Ready || !p.Settings.Enabled)return true;
-            if(p.runtimeIds.TryGetValue(__instance.Entity.GUID,out var stable) && p.Settings.Units.TryGetValue(stable,out var rule) && rule.Price.HasValue)
-            {__result=(uint)rule.Price.Value;return false;}
-            return true;
+            if(!p.runtimeIds.TryGetValue(__instance.Entity.GUID,out var stable)||!p.Settings.Units.TryGetValue(stable,out var rule))return true;
+            if(rule.Price.HasValue){__result=(uint)rule.Price.Value;return false;}
+            // Native automatic cost includes health, size and equipment. Keep non-price
+            // edits independent without creating a persisted price override. Native fixed
+            // prices and unedited units retain their original pricing path.
+            if(rule.IsEmpty||__instance.forceCost!=0||__instance.useCustomCost||!p.ByKey.TryGetValue(stable,out var entry))return true;
+            __result=__0?entry.OriginalPrice:entry.OriginalPriceWithoutRiders;return false;
         }
         public static string Key(UnitBlueprint blueprint) => Instance==null?"Expansionary/"+RawName(blueprint):Instance.ResolveKey(blueprint);
         public static object EffectiveStat(UnitEntry entry,string field)

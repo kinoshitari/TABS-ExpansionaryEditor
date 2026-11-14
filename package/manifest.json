@@ -1,6 +1,6 @@
 {
   "name": "ExpansionaryEditor",
-  "version_number": "1.10.0",
+  "version_number": "1.10.1",
   "website_url": "https://github.com/kinoshitari/TABS-ExpansionaryEditor",
   "description": "F6 七来源兵种编辑器。同款双持同步、寒冷/燃烧等武器效果开关与数值、独立承伤页、中文兵种与括号备注、分级增减、批量与预设；扩展运行时软依赖，支持原版单独使用。",
   "dependencies": [

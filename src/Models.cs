@@ -12,7 +12,7 @@ namespace ExpansionaryEditor
     {
         public string Key, Name, Faction, Module, Source, AssetName;
         public UnitBlueprint Blueprint;
-        public uint OriginalPrice;
+        public uint OriginalPrice, OriginalPriceWithoutRiders;
         public Dictionary<string, object> OriginalStats = new Dictionary<string, object>();
         public GameObject Base, Right, Left;
         public GameObject[] Props, Children;

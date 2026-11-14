@@ -1,12 +1,12 @@
 # TABS 数值编辑器
 
-TABS 游戏内兵种数值编辑器，当前版本 **1.10.0**。按 **F6** 打开或关闭。
+TABS 游戏内兵种数值编辑器，当前版本 **1.10.1**。按 **F6** 打开或关闭。
 
-同款双持武器可将当前一侧修改同步到另一只手；左右手新增“特殊效果”，分别开关并调整武器已有的寒冷、燃烧／持续伤害等词条。
+修复仅改血量导致价格变化：未编辑价格时，使用自动定价的已修改兵种保持加载时的基准价；已有手动价格覆盖保留。
 
 ## 安装与更新
 
-从 [v1.10.0 Release](https://github.com/kinoshitari/TABS-ExpansionaryEditor/releases/tag/v1.10.0) 下载 `Local-ExpansionaryEditor-1.10.0.zip`。
+从 [v1.10.1 Release](https://github.com/kinoshitari/TABS-ExpansionaryEditor/releases/tag/v1.10.1) 下载 `Local-ExpansionaryEditor-1.10.1.zip`。
 
 在 r2modman 选择 TABS 和目标配置，打开 **设置 → Import local mod（导入本地模组）**，选择 ZIP，无需解压。使用原配置更新，原数值与预设继续保留。
 
@@ -80,7 +80,7 @@ dotnet build .\ExpansionaryEditor.csproj -c Release --no-restore `
 .\Build-Mod.ps1 -SkipBuild
 ```
 
-输出位于 `dist/Local-ExpansionaryEditor-1.10.0.zip`。打包脚本不会覆盖同版本的已有输出；重打包前先移走 `dist` 中的同名 ZIP 与 `build/mod-1.10.0`。
+输出位于 `dist/Local-ExpansionaryEditor-1.10.1.zip`。打包脚本不会覆盖同版本的已有输出；重打包前先移走 `dist` 中的同名 ZIP 与 `build/mod-1.10.1`。
 
 也可退出游戏后手工安装构建的 DLL。已有 r2modman 登记时，脚本同步本编辑器的版本与前置清单；不修改其他模组的启停状态：
 
@@ -88,6 +88,6 @@ dotnet build .\ExpansionaryEditor.csproj -c Release --no-restore `
 .\Install.ps1 -ProfileRoot 'D:\r2modman-data\TABS\profiles\Default'
 ```
 
-## 1.10.0 交付状态
+## 1.10.1 交付状态
 
 源码已构建并生成模组包。按本次要求，未运行测试、实际 r2modman 导入、界面预览或游戏验证。

@@ -175,7 +175,7 @@ namespace ExpansionaryEditor
                     if(ByKey.ContainsKey(key))throw new InvalidOperationException(source.Label+"有重复兵种标识："+RawName(bp));
                     var faction=factions.FirstOrDefault(f=>f&&(AccessTools.Field(typeof(Faction),"m_units").GetValue(f) as UnitBlueprint[])?.Contains(bp)==true);
                     var entry=new UnitEntry {Key=key,Name=RawName(bp),AssetName=bp.name,Module=source.Module,Source=source.Label,Faction=faction?faction.Entity.Name:"附加／召唤兵种",Blueprint=bp,
-                        OriginalPrice=bp.GetUnitCost(true),Base=bp.UnitBase,Right=bp.RightWeapon,Left=bp.LeftWeapon,Props=ReadProps(bp),
+                        OriginalPrice=bp.GetUnitCost(true),OriginalPriceWithoutRiders=bp.GetUnitCost(false),Base=bp.UnitBase,Right=bp.RightWeapon,Left=bp.LeftWeapon,Props=ReadProps(bp),
                         Children=bp.objectsToSpawnAsChildren==null?new GameObject[0]:(GameObject[])bp.objectsToSpawnAsChildren.Clone()};
                     foreach(var stat in Labels.Stats)entry.OriginalStats[stat.Field]=AccessTools.Field(typeof(UnitBlueprint),stat.Field).GetValue(bp);
                     Entries.Add(entry);ByKey.Add(key,entry);catalogKeys[bp.GetInstanceID()]=key;runtimeIds[bp.Entity.GUID]=key;
