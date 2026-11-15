@@ -37,7 +37,8 @@ namespace ExpansionaryEditor
         }
         bool DrawFold(string key,string title,int count,int modified,int pending,bool initial=true,int depth=0)
         {
-            key=(selected?.Key??moduleFilter)+"/"+tab+"/"+key;
+            // Foldouts are view preferences shared by units, not per-unit data.
+            key=tab+"/"+key;
             bool open=parameterFolds.IsOpen(key,initial);
             GUILayout.Space(depth==0?18:8);
             var rect=GUILayoutUtility.GetRect(1,44,GUILayout.ExpandWidth(true));rect.x+=depth*16;rect.width-=depth*16;

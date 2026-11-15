@@ -1,12 +1,12 @@
 # TABS 数值编辑器
 
-TABS 游戏内兵种数值编辑器，当前版本 **1.10.3**。按 **F6** 打开或关闭。
+TABS 游戏内兵种数值编辑器，当前版本 **1.10.4**。按 **F6** 打开或关闭。
 
 数值箭头按大小自动选择固定步长：`>` 微调、`>>` 大调，使用 1／2／5 系列档位并对齐刻度，不再按百分比累加零碎小数。
 
 ## 安装与更新
 
-从 [v1.10.3 Release](https://github.com/kinoshitari/TABS-ExpansionaryEditor/releases/tag/v1.10.3) 下载 `Local-ExpansionaryEditor-1.10.3.zip`。
+从 [v1.10.4 Release](https://github.com/kinoshitari/TABS-ExpansionaryEditor/releases/tag/v1.10.4) 下载 `Local-ExpansionaryEditor-1.10.4.zip`。
 
 在 r2modman 选择 TABS 和目标配置，打开 **设置 → Import local mod（导入本地模组）**，选择 ZIP，无需解压。使用原配置更新，原数值与预设继续保留。
 
@@ -16,6 +16,7 @@ TABS 游戏内兵种数值编辑器，当前版本 **1.10.3**。按 **F6** 打�
 
 - 编辑原版、HiddenUnits、臭臭、Expansionary、圣诞节（Holiday 2.2.1）、动物王国（AnimalKingdom 1.0.4）、中国神话（Chinese_myth 0.2.1）。
 - 属性、独立承伤页、左右手武器、弹丸及可识别技能字段。
+- 同一游戏会话内，参数列表的展开／收起选择跨兵种共用；切换 Mod 或重新打开 F6 仍保留，不同页签独立。
 - “生成生命”显示体型折算生命、常规随机范围与已摆放兵种的实际最大生命；额外生命倍率 1 不代表体型缩放后的总倍率也是 1。
 - 同款双持在右手点“同步到左手”，或在左手点“同步到右手”；包含整只手的草稿、特殊效果和还原，仍需保存。
 - 左右手“特殊效果”支持寒冷、燃烧／持续伤害、流血、雷电、生化、酸蚀、感染、石化等实际附加词条；开关不关闭普通命中，未识别数值的状态只提供开关。
@@ -83,7 +84,7 @@ dotnet build .\ExpansionaryEditor.csproj -c Release --no-restore `
 .\Build-Mod.ps1 -SkipBuild
 ```
 
-输出位于 `dist/Local-ExpansionaryEditor-1.10.3.zip`。打包脚本不会覆盖同版本的已有输出；重打包前先移走 `dist` 中的同名 ZIP 与 `build/mod-1.10.3`。
+输出位于 `dist/Local-ExpansionaryEditor-1.10.4.zip`。打包脚本不会覆盖同版本的已有输出；重打包前先移走 `dist` 中的同名 ZIP 与 `build/mod-1.10.4`。
 
 也可退出游戏后手工安装构建的 DLL。已有 r2modman 登记时，脚本同步本编辑器的版本与前置清单；不修改其他模组的启停状态：
 
@@ -91,6 +92,6 @@ dotnet build .\ExpansionaryEditor.csproj -c Release --no-restore `
 .\Install.ps1 -ProfileRoot 'D:\r2modman-data\TABS\profiles\Default'
 ```
 
-## 1.10.3 交付状态
+## 1.10.4 交付状态
 
 源码已构建并生成模组包。按本次要求，未运行测试、实际 r2modman 导入、界面预览或游戏验证。
