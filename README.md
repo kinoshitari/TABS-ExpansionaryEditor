@@ -1,12 +1,12 @@
 # TABS 数值编辑器
 
-TABS 游戏内兵种数值编辑器，当前版本 **1.10.2**。按 **F6** 打开或关闭。
+TABS 游戏内兵种数值编辑器，当前版本 **1.10.3**。按 **F6** 打开或关闭。
 
-生命页显示体型折算后的倍率、血量范围与场上最大生命；承伤页区分原有部位／护甲系数和附加倍率。主兵种来源排除礼盒精灵随机池，派系列表跟随游戏顺序。
+数值箭头按大小自动选择固定步长：`>` 微调、`>>` 大调，使用 1／2／5 系列档位并对齐刻度，不再按百分比累加零碎小数。
 
 ## 安装与更新
 
-从 [v1.10.2 Release](https://github.com/kinoshitari/TABS-ExpansionaryEditor/releases/tag/v1.10.2) 下载 `Local-ExpansionaryEditor-1.10.2.zip`。
+从 [v1.10.3 Release](https://github.com/kinoshitari/TABS-ExpansionaryEditor/releases/tag/v1.10.3) 下载 `Local-ExpansionaryEditor-1.10.3.zip`。
 
 在 r2modman 选择 TABS 和目标配置，打开 **设置 → Import local mod（导入本地模组）**，选择 ZIP，无需解压。使用原配置更新，原数值与预设继续保留。
 
@@ -23,7 +23,7 @@ TABS 游戏内兵种数值编辑器，当前版本 **1.10.2**。按 **F6** 打�
 - 承伤页集中四类原生伤害、燃烧／持续伤害、爆炸、冰冻积累、模组实际扣血来源、部位系数及护甲与冲击。
 - 原有部位与模组护甲优先显示真实字段；独立类型／来源倍率注明“附加”，不冒充兵种的原生综合抗性。
 - 来源项下的“注释”默认收起，展开查看模组、机制和已确认的预制体关联兵种；备注以“（…）”显示，“调用入口”列出实际接入的组件与方法。
-- 数值框 `<< / < / > / >>` 分级增减：单箭头 1%，双箭头 10%，整数至少变化 1。
+- 数值框 `<< / < / > / >>` 自动分档：例如 1 使用 0.01／0.1，250 使用 2／20，1600 使用 10／100；点击对齐刻度，整数最小步长为 1，极小数继续细分。
 - 乘算、设值、增减的批量预览与应用。
 - 打开“更多派系”后拖动派系内兵种排序，显示插入线并支持边缘滚动；顶部派系标签沿用游戏原生拖拽。拖后就地更新现有按钮，保留当前页和选中兵种。
 - 全局、Mod、派系预设，修改摘要与历史恢复。
@@ -83,7 +83,7 @@ dotnet build .\ExpansionaryEditor.csproj -c Release --no-restore `
 .\Build-Mod.ps1 -SkipBuild
 ```
 
-输出位于 `dist/Local-ExpansionaryEditor-1.10.2.zip`。打包脚本不会覆盖同版本的已有输出；重打包前先移走 `dist` 中的同名 ZIP 与 `build/mod-1.10.2`。
+输出位于 `dist/Local-ExpansionaryEditor-1.10.3.zip`。打包脚本不会覆盖同版本的已有输出；重打包前先移走 `dist` 中的同名 ZIP 与 `build/mod-1.10.3`。
 
 也可退出游戏后手工安装构建的 DLL。已有 r2modman 登记时，脚本同步本编辑器的版本与前置清单；不修改其他模组的启停状态：
 
@@ -91,6 +91,6 @@ dotnet build .\ExpansionaryEditor.csproj -c Release --no-restore `
 .\Install.ps1 -ProfileRoot 'D:\r2modman-data\TABS\profiles\Default'
 ```
 
-## 1.10.2 交付状态
+## 1.10.3 交付状态
 
 源码已构建并生成模组包。按本次要求，未运行测试、实际 r2modman 导入、界面预览或游戏验证。
